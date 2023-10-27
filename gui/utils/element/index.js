@@ -2,7 +2,7 @@
  * @typedef CreateElementOptions
  * @property {string | undefined} className
  * @property {string | undefined} id
- * @property {string | undefined} content
+ * @property {HTMLElement | string | undefined} content
  * @property {any} style
  * @property {{[key in keyof HTMLElementEventMap]: (e: any) => void} | undefined} eventListeners
  */
@@ -28,7 +28,9 @@ function createElement(type, options) {
   if(options) {
     if(options.className) element.classList.add(...options.className.split(" "));
     if(options.id) element.id = options.id;
-    if(options.content) element.innerHTML = options.content;
+    if(options.content) 
+      if(typeof options.content === "string") element.innerHTML = options.content;
+      else element.append(options.content);
     if(options.style) {
       let _style = options.style;
       for(let key in _style) if(_style[key] !== undefined || _style[key] !== null) element.style[key] = _style[key];

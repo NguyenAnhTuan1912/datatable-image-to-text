@@ -1,12 +1,15 @@
 // Import from components
-import { FileUpload } from "./components/FileUpload.js";
+import { ImageUpload } from "./components/image_upload/ImageUpload.js";
 
 // Định nghĩa hàm main
 /**
- * 
- * @param app 
+ * Hàm main
+ * @param {HTMLDivElement} app 
  * @param utils 
  */
 export function main(app, utils) {
-  const fup = new FileUpload(app, utils);
+  const fup = new ImageUpload(app, utils);
+
+  // Thêm fup vào trong app
+  fup.render();
 }
