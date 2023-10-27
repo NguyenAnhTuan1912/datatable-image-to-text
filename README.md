@@ -33,3 +33,10 @@ Với ý tưởng là người dùng sẽ input vào từ GUI cùng với một 
 Chương trình python sẽ có thể bao gồm 1 hoặc nhiều chương trình con trong đó dưới dạng script dùng để thực hiện 1 hoặc nhiều các công việc cụ thể trong phần demo.
 
 Trong mỗi phần của repo (folder gui, nodejs và python) sẽ được nói rõ hơn.
+
+## Test
+Vào đường dẫn
+```
+/gui/test.html
+```
+Để test một số tính năng như là làm mờ ảnh, chuyển ảnh màu thành ảnh xám và nhận diện khuôn mặt.

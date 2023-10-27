@@ -1,5 +1,5 @@
 // Import from components
-import { ImageUpload } from "./components/image_upload/ImageUpload.js";
+import { ImageUpload } from "../components/image_upload/ImageUpload.js";
 
 // Định nghĩa hàm main
 /**

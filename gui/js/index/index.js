@@ -1,4 +1,4 @@
-import { Utils } from "./utils/index.js";
+import { Utils } from "../utils/index.js";
 
 // Import main function
 import { main } from "./main.js";

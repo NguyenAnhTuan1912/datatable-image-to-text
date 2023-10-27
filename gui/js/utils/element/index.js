@@ -18,6 +18,26 @@ function toElement(html) {
 }
 
 /**
+ * @param {HTMLElement} element 
+ * @param {Array<any> | HTMLElement | string} children 
+ * @returns 
+ */
+function append(element, children) {
+  if(Array.isArray(children)) {
+    for(let child of children) {
+      element = append(element, child);
+    }
+
+    return element;
+  }
+
+  if(typeof children === "string") element.append(toElement(children));
+  else element.append(children);
+
+  return element;
+}
+
+/**
  * @param {keyof HTMLElementTagNameMap} type
  * @param {CreateElementOptions | undefined} options
  * @returns 
@@ -28,17 +48,16 @@ function createElement(type, options) {
   if(options) {
     if(options.className) element.classList.add(...options.className.split(" "));
     if(options.id) element.id = options.id;
-    if(options.content) 
-      if(typeof options.content === "string") element.innerHTML = options.content;
-      else element.append(options.content);
+    if(options.content) element = append(element, options.content);
     if(options.style) {
       let _style = options.style;
       for(let key in _style) if(_style[key] !== undefined || _style[key] !== null) element.style[key] = _style[key];
     };
     if(options.eventListeners) {
       let _listeners = options.eventListeners;
-      for(let key in _listeners)
+      for(let key in _listeners) {
         element.addEventListener(key, _listeners[key]);
+      }
     };
   }
 
@@ -47,11 +66,15 @@ function createElement(type, options) {
 
 export const _Element_ = {
   /**
-   * Phương thức này sẽ chuyển chuỗi html sang một element. 
+   * Phương thức này sẽ chuyển chuỗi html sang một HTMLElement. 
    */
   toElement,
   /**
-   * Phương thức này dùng để build một HTMLElement
+   * Phương thức này dùng để build một HTMLElement.
    */
-  createElement
+  createElement,
+  /**
+   * Phương thức này dùng để thêm một content vào trong HTMLElement.
+   */
+  append
 };
