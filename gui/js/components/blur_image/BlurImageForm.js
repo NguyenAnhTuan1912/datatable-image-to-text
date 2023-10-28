@@ -1,6 +1,9 @@
 // Import from classes
 import { Component } from "../../classes/Component.js";
 
+// Import from apis
+import { ImageAPIs } from "../../apis/index.js";
+
 // Import from components
 import { ImagePicker } from "../image_picker/ImagePicker.js";
 
@@ -9,16 +12,16 @@ import { ImagePicker } from "../image_picker/ImagePicker.js";
 
 export class BlurImage extends Component {
   /**
-   * @param {HTMLDivElement} app 
+   * @param {HTMLDivElement} parent 
    * @param {UtilsType} utils 
    */
-  constructor(app, utils) {
-    super(app, utils);
+  constructor(parent, utils) {
+    super(parent, utils);
   }
 
   _createContainer() {
     // Tạo input
-    let imgpker = new ImagePicker(this.app, this.utils);
+    let imgpker = new ImagePicker(this.parent, this.utils);
     let strthRge = this.utils.Element.toElement(`
       <div class="mb-3">
         <label for="strength-range" class="form-label">Blur strength</label>
@@ -45,22 +48,20 @@ export class BlurImage extends Component {
     // Tạo form
     let form = this.utils.Element.createElement("form", {
       className: "blur-image-form",
-      content: [strthRge, imgpkerRef, submitBtn],
+      children: [strthRge, imgpkerRef, submitBtn],
       eventListeners: {
         "submit": function(e) {
           e.preventDefault();
-
-          const req = new XMLHttpRequest();
-          let file = e.target["image"].files[0];
+          const formData = new FormData(e.target);
           
-          req.open("POST", "http://localhost:3000/api/image/blur_image", true);
-          req.onload = (event) => {
-            console.log("Event: ", event);
-          };
+          ImageAPIs
+          .convertBlurImageAsync(formData)
+          .then(res => {
+            e.preventDefault();
+            console.log("Response: ", res);
+          })
 
-          req.send(file);
-          
-          output.innerHTML = "";
+          // return false;
         }
       }
     });
@@ -68,7 +69,7 @@ export class BlurImage extends Component {
     // Tạo container
     let container = this.utils.Element.createElement("div", {
       className: "blur-image-container",
-      content: [form, `<h2 class="my-3">Kết quả</h2>`, output]
+      children: [form, `<h2 class="my-3">Kết quả</h2>`, output]
     });
 
     return container;

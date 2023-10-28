@@ -2,7 +2,8 @@
  * @typedef CreateElementOptions
  * @property {string | undefined} className
  * @property {string | undefined} id
- * @property {HTMLElement | string | undefined} content
+ * @property {HTMLElement | string | undefined} children
+ * @property {string | undefined} textContent
  * @property {any} style
  * @property {{[key in keyof HTMLElementEventMap]: (e: any) => void} | undefined} eventListeners
  */
@@ -20,12 +21,18 @@ function toElement(html) {
 /**
  * @param {HTMLElement} element 
  * @param {Array<any> | HTMLElement | string} children 
+ * @param {string | undefined} textContent
  * @returns 
  */
-function append(element, children) {
+function append(element, children, textContent) {
+  if(!children && textContent) {
+    element.textContent = textContent;
+    return element;
+  };
+
   if(Array.isArray(children)) {
     for(let child of children) {
-      element = append(element, child);
+      append(element, child);
     }
 
     return element;
@@ -48,15 +55,15 @@ function createElement(type, options) {
   if(options) {
     if(options.className) element.classList.add(...options.className.split(" "));
     if(options.id) element.id = options.id;
-    if(options.content) element = append(element, options.content);
+    if(options.children) append(element, options.children);
+    if(options.textContent) append(element, undefined, options.textContent);
     if(options.style) {
       let _style = options.style;
       for(let key in _style) if(_style[key] !== undefined || _style[key] !== null) element.style[key] = _style[key];
     };
     if(options.eventListeners) {
-      let _listeners = options.eventListeners;
-      for(let key in _listeners) {
-        element.addEventListener(key, _listeners[key]);
+      for(let key in options.eventListeners) {
+        element.addEventListener(key, options.eventListeners[key]);
       }
     };
   }

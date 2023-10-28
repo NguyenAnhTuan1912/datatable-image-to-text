@@ -22,12 +22,12 @@ import { Component } from "../../classes/Component.js";
 
 export class Tab extends Component {
   /**
-   * @param {HTMLDivElement} app 
+   * @param {HTMLDivElement} parent 
    * @param {UtilsType} utils 
    * @param {TabsDataType} tabs 
    */
-  constructor(app, utils, tabs) {
-    super(app, utils);
+  constructor(parent, utils, tabs) {
+    super(parent, utils);
     this.tabs = new Map(tabs);
     this.contentContainer = null;
   }
@@ -50,7 +50,6 @@ export class Tab extends Component {
 
     // Tạo tabs.
     let tabEntries = this.tabs.entries();
-    let tabsData = this.tabs.values();
     let tabBtns = [];
     let index = 0;
     let firstTabName = "";
@@ -60,17 +59,17 @@ export class Tab extends Component {
 
       if(index === 0) {
         className = " btn-primary";
-        firstTabName = tabName
+        firstTabName = tabName;
       };
       if(tabData.isFirst) {
         className = " btn-primary";
-        firstTabName = tabName
+        firstTabName = tabName;
       };
       if(index < tabN) className += " me-2";
 
       let btn = that.utils.Element.createElement("button", {
         className: "btn" + className,
-        content: tabData.label,
+        textContent: tabData.label,
         eventListeners: {
           "click": function(e) {
             let _btn = e.target;
@@ -104,13 +103,13 @@ export class Tab extends Component {
     // Tạo tab container.
     let tabsBtnContainer = this.utils.Element.createElement("div", {
       className: "tab-btns",
-      content: tabBtns
+      children: tabBtns
     });
 
     // Tạo container.
     let container = this.utils.Element.createElement("div", {
       className: "tab mb-3",
-      content: [titleHTML, tabsBtnContainer, this.contentContainer]
+      children: [titleHTML, tabsBtnContainer, this.contentContainer]
     });
 
     // Hiển thị tab đầu tiên
@@ -121,7 +120,9 @@ export class Tab extends Component {
 
   showTab(name) {
     let element = this.tabs.get(name).element;
-    this.contentContainer.innerHTML = "";
+    
+    // Xóa chilren hiện tại.
+    if(this.contentContainer.children[0]) this.contentContainer.children[0].remove();
 
     if(typeof element === "string") {
       this.contentContainer.innerHTML = element;
@@ -137,6 +138,6 @@ export class Tab extends Component {
    */
   render(data) {
     if(!this.ref) this.ref = this._createContainer(data);
-    this.app.append(this.ref);
+    this.parent.append(this.ref);
   }
 }

@@ -22,8 +22,9 @@
 
 ## Startup
 Khởi động thì mình chỉ cần khởi động GUI và API, chương trình python sẽ được API sử dụng trong quá trình demo.
-1. Với GUI (dùng VSCode): thì ấn vào nút `Go Live` ở góc bên phải của màn hình. Nếu như nó hiện lên cây thư mục như là gui, nodejs, python thì có nghĩa là nó đang mở ở root dir, nên mình phải bấm vào trong `gui`.
+1. Với GUI (dùng VSCode): thì ấn vào nút `Go Live` ở góc bên phải của màn hình. Nếu như nó hiện lên cây thư mục như là gui, nodejs, python thì có nghĩa là nó đang mở ở root dir, nên mình phải bấm vào trong `gui`. Nhớ là phải vào `gui` trước khi bật `Go Live`.
 2. Với API: mở terminal trong folder `nodejs` và gõ `npm run dev`. Đợi một lúc ứng dụng API sẽ khởi động.
+3. Với python programs: tải các file xml cần thiết, haarcascade_eye_tree_eyeglasses và haarcascade_frontalface_default.
 
 ## About
 Repo này là một phần của đồ án môn học, và nhằm hỗ trợ tốt nhất cho việc demo thì nhóm quyết định chia phần demo thành 2 ứng dụng khác nhau là GUI và API và 1 chương trình Python.

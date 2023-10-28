@@ -1,13 +1,13 @@
 export class Component {
   /**
-   * @param {HTMLDivElement} app 
+   * @param {HTMLDivElement} parent 
    * @param {UtilsType} utils 
    */
-  constructor(app, utils) {
+  constructor(parent, utils) {
     /**
      * @type {HTMLDivElement}
      */
-    this.app = app;
+    this.parent = parent;
     /**
      * @type {UtilsType}
      */
@@ -24,6 +24,6 @@ export class Component {
 
   render() {
     if(!this.ref) this.ref = this._createContainer();
-    this.app.append(this.ref);
+    this.parent.append(this.ref);
   }
 }

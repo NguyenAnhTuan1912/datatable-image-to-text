@@ -1,3 +1,4 @@
+import os
 import cv2
 import numpy as np
 
@@ -7,8 +8,8 @@ from typing import Type, Union
 # Module này dùng để thực hiện các công việc lên ảnh.
 # Sẽ được cập nhật thêm.
 
-__root__ = "data"
-__xml__ = "xml"
+__root__ = "uploads"
+__xml__ = "../python/xml"
 
 __haarcascade__ = "/haarcascade"
 
@@ -41,10 +42,14 @@ class MyImage:
   
   def __init__(self, root: str = __root__):
     self.root_path = root
-    self.xml_root__path = __xml__
+    self.xml_root_path = __xml__
     self.images = []
-    self.face_cascade = cv2.CascadeClassifier(self.xml_root__path + __haarcascade__ + '/haarcascade_frontalface_default.xml')
-    self.eyes_cascade = cv2.CascadeClassifier(self.xml_root__path + __haarcascade__ + '/haarcascade_eye_tree_eyeglasses.xml')
+    
+    faceCascadePath = os.path.abspath(self.xml_root_path + __haarcascade__ + '/haarcascade_frontalface_default.xml')
+    eyesCascadePath = os.path.abspath(self.xml_root_path + __haarcascade__ + '/haarcascade_eye_tree_eyeglasses.xml')
+    
+    self.face_cascade = cv2.CascadeClassifier(faceCascadePath)
+    self.eyes_cascade = cv2.CascadeClassifier(eyesCascadePath)
   
   
   
@@ -63,9 +68,8 @@ class MyImage:
     """
     try:
       if color == None:
-        return cv2.imread(self.root_path + path)
-      return cv2.imread(self.root_path + path, color)
-      
+        return cv2.imread(path)
+      return cv2.imread(path, color)
     except Exception as e:
       print(str(e))
   
@@ -82,7 +86,7 @@ class MyImage:
     :param at: vị trí của ảnh muốn lấy.
     """
     if at == None:
-       at = len(self.images) - 1
+      at = len(self.images) - 1
     return self.images[at]
   
   
@@ -182,7 +186,8 @@ class MyImage:
     :param color: màu cho ảnh.
     """
     try:
-      self.images.append(self.__get_image_cv2(path, color))
+      img = self.__get_image_cv2(path, color)
+      self.images.append(img)
     except Exception as e:
       print(str(e))
       
@@ -277,7 +282,6 @@ class MyImage:
   # SHOW BLUR
   def show_blur(
     self,
-    title: str = None,
     x: int = 3,
     ddepth: int = -1,
     at: int = None
@@ -285,15 +289,11 @@ class MyImage:
     """
     Phương thức này hiển thị ra ảnh mờ.
     
-    :param title: title cho cửa số hiện ảnh.
     :param x: độ mờ, tạm hiểu là thế :3
     :param ddepth: độ sâu.
     :param at: vị trí ảnh trong list muốn làm mờ.
     """
     try:
-      if title == None:
-        title = "Blur image {}x{}".format(x, x)
-      
       # Lấy ảnh mờ
       blur = self.__get_blur_image(x, ddepth, at)
       

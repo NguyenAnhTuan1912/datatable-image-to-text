@@ -5,11 +5,11 @@ import { Component } from "../../classes/Component.js";
 
 export class ImagePicker extends Component {
   /**
-   * @param {HTMLDivElement} app 
+   * @param {HTMLDivElement} parent 
    * @param {UtilsType} utils 
    */
-  constructor(app, utils) {
-    super(app, utils);
+  constructor(parent, utils) {
+    super(parent, utils);
   }
 
   _createContainer() {
@@ -21,7 +21,7 @@ export class ImagePicker extends Component {
     // Tạo container.
     let container = this.utils.Element.createElement("div", {
       className: "image-picker",
-      content: imageFile
+      children: imageFile
     });
 
     return container;
