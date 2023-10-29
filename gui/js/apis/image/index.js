@@ -1,21 +1,63 @@
+import { API_ROOT } from '../index.js';
+
+const path = API_ROOT + "/image";
+
 /**
- * Dùng caller này để convert một tấm ảnh thành ảnh mờ.
- * @param {string} path 
+ * Dùng api caller này để convert một tấm ảnh thành ảnh mờ.
  * @param {FormData} data 
  * @returns 
  */
-async function convertBlurImageAsync(path, data) {
+async function convertBlurImageAsync(data) {
   const response = await fetch(
-    path,
+    path + "/blur_image",
     {
       method: "post",
       body: data
     }
   );
 
-  return response.json();
+  // Vì trả về là ảnh, không phải là object message, nên không convert thành json.
+  return response.arrayBuffer();
+}
+
+/**
+ * Dùng api caller này để convert hệ màu của ảnh.
+ * @param {FormData} data 
+ * @returns 
+ */
+async function convertColorImageAsync(data) {
+  const response = await fetch(
+    path + "/change_color_image",
+    {
+      method: "post",
+      body: data
+    }
+  );
+
+  // Vì trả về là ảnh, không phải là object message, nên không convert thành json.
+  return response.arrayBuffer();
+}
+
+/**
+ * Dùng api caller này để nhận diện khuôn mặt trong ảnh.
+ * @param {FormData} data 
+ * @returns 
+ */
+async function recognizeFaceInImageAsync(data) {
+  const response = await fetch(
+    path + "/face_recognition_image",
+    {
+      method: "post",
+      body: data
+    }
+  );
+
+  // Vì trả về là ảnh, không phải là object message, nên không convert thành json.
+  return response.arrayBuffer();
 }
 
 export const ImageAPIs = {
-  convertBlurImageAsync
+  convertBlurImageAsync,
+  convertColorImageAsync,
+  recognizeFaceInImageAsync
 };

@@ -2,7 +2,7 @@
 import { Component } from "../../classes/Component.js";
 
 // Import from apis
-import { ImageAPIs } from "../../apis/index.js";
+import { ImageAPIs } from "../../apis/image/index.js";
 
 // Import from components
 import { ImagePicker } from "../image_picker/ImagePicker.js";
@@ -36,13 +36,26 @@ export class BlurImage extends Component {
         <output>11</output>
       </div>
     `);
-    let submitBtn = `<button type="submit" class="btn btn-primary mt-3">Thực thi</button>`;
+    let submitBtn = `<button type="submit" class="btn btn-primary mt-3">Làm mờ</button>`;
 
     let imgpkerRef = imgpker.getRef();
 
     // Tạo output
-    let output = this.utils.Element.createElement("div", {
-      className: "output"
+    let guide = this.utils.Element.createElement("div", {
+      className: "blur-image-guide",
+      children: `
+        <div>
+          <h3>Hướng dẫn</h3>
+          <p>Làm mờ ảnh có một thông số là Blur Strength, độ mạnh của mờ. Càng cao thì ảnh càng mờ, thông số này được giới hạn trong khoảng <strong>[1, 20]</strong>.</p>
+          <ol>
+            <li>Ấn vào <strong>Choose File</strong>.</li>
+            <li>Chọn một tấm ảnh muốn làm mờ.</li>
+            <li>Chọn độ mạnh của blur và ấn <strong>Làm mờ</strong>.</li>
+            <li>Chờ Backend thực thi. Sau khi thực thi xong thì sẽ có một popup Download hiện lên, lưu ảnh vào đâu đó.</li>
+            <li>Mở ảnh trong folder vừa lưu và xem kết quả.</li>
+          </ol>
+        </div>
+      `
     });
 
     // Tạo form
@@ -53,12 +66,21 @@ export class BlurImage extends Component {
         "submit": function(e) {
           e.preventDefault();
           const formData = new FormData(e.target);
-          
+          const imageFile = e.target["image"].files[0];
+
           ImageAPIs
           .convertBlurImageAsync(formData)
           .then(res => {
-            e.preventDefault();
-            console.log("Response: ", res);
+            // Chuyển binary thành base64.
+            const url = window.URL.createObjectURL(new Blob([res], { type: imageFile.type }));
+
+            // Tạo một thẻ a và gán base64 vào href cho thẻ a.
+            // Set thuộc tính download và tự động tải về.
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', imageFile.name);
+            document.body.appendChild(link);
+            link.click();
           })
 
           // return false;
@@ -69,7 +91,7 @@ export class BlurImage extends Component {
     // Tạo container
     let container = this.utils.Element.createElement("div", {
       className: "blur-image-container",
-      children: [form, `<h2 class="my-3">Kết quả</h2>`, output]
+      children: [guide, form]
     });
 
     return container;

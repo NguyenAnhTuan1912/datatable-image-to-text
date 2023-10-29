@@ -10,7 +10,9 @@ const root = path.resolve("../");
 
 export class PyProcess {
   static ScriptPaths = {
-    BlurImage: root + "/python/blur_image.py"
+    BlurImage: root + "/python/blur_image.py",
+    ChangeColorImage: root + "/python/change_color_image.py",
+    FaceRecognition: root + "/python/face_recognition.py"
   };
 
   constructor() {}

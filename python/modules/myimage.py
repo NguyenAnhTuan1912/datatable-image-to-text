@@ -243,8 +243,7 @@ class MyImage:
       if color != None:
         img = self.convert_color(color, at)
         
-      cv2.imshow(title, img)
-      cv2.waitKey(0)
+      return img
     except Exception as e:
       print(str(e))
       

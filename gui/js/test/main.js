@@ -1,5 +1,7 @@
 // Import from components
-import { BlurImage } from "../components/blur_image/BlurImageForm.js";
+import { BlurImage } from "../components/blur_image/BlurImage.js";
+import { ChangeColorImage } from "../components/change_color_image/ChangeColorImage.js";
+import { FaceRecognition } from "../components/face_recognition/FaceRecognition.js";
 import { Tab } from "../components/tab/Tab.js";
 
 // Định nghĩa hàm main
@@ -10,11 +12,14 @@ import { Tab } from "../components/tab/Tab.js";
  */
 export function main(app, utils) {
   const blrimg = new BlurImage(app, utils);
+  const grimg = new ChangeColorImage(app, utils);
+  const freg = new FaceRecognition(app, utils);
+
   const tab = new Tab(app, utils,
     [
       ["blur-image", { label: "Làm mờ ảnh", element: blrimg.getRef() }],
-      ["to-grayscale", { label: "Chuyển đổi ảnh về ảnh xám", element: "<h1>Chuyển đổi ảnh về ảnh xám</h1>" }],
-      ["face-recognition", { label: "Nhận diện khuôn mặt", element: "<h1>Nhận diện khuôn mặt</h1>" }]
+      ["change-color-image", { label: "Chuyển đổi màu ảnh (đơn giản)", element: grimg.getRef() }],
+      ["face-recognition", { label: "Nhận diện khuôn mặt", element: freg.getRef() }]
     ]
   );
 

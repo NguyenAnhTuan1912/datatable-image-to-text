@@ -1,5 +1,5 @@
 // Import from components
-import { ImageUpload } from "../components/image_upload/ImageUpload.js";
+import { ImagePicker } from "../components/image_picker/ImagePicker.js";
 
 // Định nghĩa hàm main
 /**
@@ -8,8 +8,18 @@ import { ImageUpload } from "../components/image_upload/ImageUpload.js";
  * @param utils 
  */
 export function main(app, utils) {
-  const fup = new ImageUpload(app, utils);
+  const m = utils.Element.createElement("div", {
+    className: "p-3",
+    children: `
+      <div>
+        <h2>Lưu ý</h2>
+        <p>Hiện tại thì ứng dụng đang trong quá trình thử nghiệm, nên ae vào trong link bên dưới để qua Test Section nhé.</p>
+        <a href="test.html">Chuyển qua Test section</a>
+      </div>
+    `
+  });
 
   // Thêm fup vào trong app
-  fup.render();
+  // imgpker.render();
+  app.append(m);
 }
