@@ -48,7 +48,7 @@ export class FaceRecognition extends Component {
         name="min-neighboors"
         oninput="this.nextElementSibling.value = this.value"
       >
-      <output>2</output>
+      <output>6</output>
     </div>
   `);
 
