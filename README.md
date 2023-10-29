@@ -59,6 +59,7 @@ Làm mờ ảnh có một thông số là Blur Strength, độ mạnh của mờ
 ![image](https://github.com/NguyenAnhTuan1912/datatable-image-to-text/assets/86825061/112cd71b-cd0e-4539-bf69-735b0e7f681a)
 4. Chờ Backend thực thi. Sau khi thực thi xong thì sẽ có một popup Download hiện lên, lưu ảnh vào đâu đó.
 5. Mở ảnh trong folder vừa lưu và xem kết quả.
+![image](https://github.com/NguyenAnhTuan1912/datatable-image-to-text/assets/86825061/e3799a99-aa52-4ebc-9dd8-719921bde5da)
 
 ### Đổi hệ màu
 __Hướng dẫn__
