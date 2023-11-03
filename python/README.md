@@ -32,3 +32,10 @@ Có một thư mục tên là `builds`. Thư mục này sẽ chứa các thư vi
 
 __Tesseract OCR__ ([tải ở đây](https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-5.3.3.20231005.exe))
 Hướng dẫn
+Sau khi tải xong thì ấn vào cài đặt. Cái này thì không cần phải hướng dẫn nữa, chủ yêu là hướng dẫn cài ở đâu thôi. Giờ thì chọn thư mục cần cài, vào trong folder của dự án (`datatable-image-to-text`), vào tiếp `python/builds`, tạo một folder tên là `tesseract` rồi copy đường dẫn vào ô cài đặt.
+
+<div align="center">
+  <img src="https://github.com/NguyenAnhTuan1912/datatable-image-to-text/assets/86825061/5154656e-9261-4db1-b3f2-0071554b73cb" alt="Tesseract path guide"/>
+</div>
+
+Cuối cùng là ấn next và cài đặt. Sau khi cài xong thì kiếm một tấm hình có chữ, bỏ vào trong `python/test/images` rồi lấy tên file đó sửa trong `python/test/image_to_text.py` rồi thực thi script, kết quả sẽ được ghi ra file `python/test/out/regconized.txt`.
