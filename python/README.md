@@ -15,3 +15,20 @@ Phục vụ cho việc test, thì ứng dụng API sẽ hỗ trợ một số th
 - Làm mờ ảnh.
 - Chuyển đổi ảnh màu thành xám.
 - Nhận diện khuôn mặt trong ảnh.
+
+Folder `test` sẽ chứa các script test chính của app. Còn các script như là `blur_image.py`, `change_color_image.py` và `face_recognition.py` là những script dùng với product, nhưng chỉ là những chức năng TEST (test này khác với test trong folder `test`, anh em lưu ý)
+
+# Installation
+Một số thứ yêu cầu phải được cài đặt
+
+```
+opencv-python
+numpy
+matplotlib
+pytesseract
+```
+
+Có một thư mục tên là `builds`. Thư mục này sẽ chứa các thư viện được đã được build hoàn chỉnh. Và có một số thứ yêu cầu phải cài như sau (làm theo hướng dẫn)
+
+__Tesseract OCR__ ([tải ở đây](https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-5.3.3.20231005.exe))
+Hướng dẫn

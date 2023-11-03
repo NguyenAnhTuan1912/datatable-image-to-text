@@ -1,4 +1,12 @@
 node_modules
 uploads
 xml
+
+# Python
+__pycache__
+python/test/images/*
+python/test/out/*
+python/builds/*
+!python/builds/*.md
+
 package-lock.json
