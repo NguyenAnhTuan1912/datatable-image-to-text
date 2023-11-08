@@ -34,6 +34,12 @@ __Tesseract OCR__ ([tải ở đây](https://digi.bib.uni-mannheim.de/tesseract/
 Hướng dẫn
 Sau khi tải xong thì ấn vào cài đặt. Cái này thì không cần phải hướng dẫn nữa, chủ yêu là hướng dẫn cài ở đâu thôi. Giờ thì chọn thư mục cần cài, vào trong folder của dự án (`datatable-image-to-text`), vào tiếp `python/builds`, tạo một folder tên là `tesseract` rồi copy đường dẫn vào ô cài đặt.
 
+__Vietnamese Support__ ([tải ở đây](https://github.com/tesseract-ocr/tessdata/blob/main/vie.traineddata))
+Bởi vì Tesseract mặc định chỉ nhận diện tiếng Anh cho nên mình cần phải cài một phần *dữ liệu đã được huấn luyện để nhận diện tiếng Việt* nữa mình mới có thể dùng được tiếng Việt.
+
+Hướng dẫn
+Sau khi vào link, thì ấn vào biểu tượng tải về. Sau đó vào thư mục đã cài tesseract (`datatable-image-to-text/python/builds/tesseract`) và tiếp tục vào thư mục `tessdata` và bỏ file `vie.traineddata` vào trong thư mục này. File `vie.traineddata` đã có ở trong này rồi, nhưng mà nó rất nhẹ nên không đủ để nhận diện tiếng Việt.
+
 <div align="center">
   <img src="https://github.com/NguyenAnhTuan1912/datatable-image-to-text/assets/86825061/5154656e-9261-4db1-b3f2-0071554b73cb" alt="Tesseract path guide"/>
 </div>
