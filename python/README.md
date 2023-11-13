@@ -15,3 +15,33 @@ Phục vụ cho việc test, thì ứng dụng API sẽ hỗ trợ một số th
 - Làm mờ ảnh.
 - Chuyển đổi ảnh màu thành xám.
 - Nhận diện khuôn mặt trong ảnh.
+
+Folder `test` sẽ chứa các script test chính của app. Còn các script như là `blur_image.py`, `change_color_image.py` và `face_recognition.py` là những script dùng với product, nhưng chỉ là những chức năng TEST (test này khác với test trong folder `test`, anh em lưu ý)
+
+# Installation
+Một số thứ yêu cầu phải được cài đặt
+
+```
+opencv-python
+numpy
+matplotlib
+pytesseract
+```
+
+Có một thư mục tên là `builds`. Thư mục này sẽ chứa các thư viện được đã được build hoàn chỉnh. Và có một số thứ yêu cầu phải cài như sau (làm theo hướng dẫn)
+
+__Tesseract OCR__ ([tải ở đây](https://digi.bib.uni-mannheim.de/tesseract/tesseract-ocr-w64-setup-5.3.3.20231005.exe))
+Hướng dẫn
+Sau khi tải xong thì ấn vào cài đặt. Cái này thì không cần phải hướng dẫn nữa, chủ yêu là hướng dẫn cài ở đâu thôi. Giờ thì chọn thư mục cần cài, vào trong folder của dự án (`datatable-image-to-text`), vào tiếp `python/builds`, tạo một folder tên là `tesseract` rồi copy đường dẫn vào ô cài đặt.
+
+__Vietnamese Support__ ([tải ở đây](https://github.com/tesseract-ocr/tessdata/blob/main/vie.traineddata))
+Bởi vì Tesseract mặc định chỉ nhận diện tiếng Anh cho nên mình cần phải cài một phần *dữ liệu đã được huấn luyện để nhận diện tiếng Việt* nữa mình mới có thể dùng được tiếng Việt.
+
+Hướng dẫn
+Sau khi vào link, thì ấn vào biểu tượng tải về. Sau đó vào thư mục đã cài tesseract (`datatable-image-to-text/python/builds/tesseract`) và tiếp tục vào thư mục `tessdata` và bỏ file `vie.traineddata` vào trong thư mục này. File `vie.traineddata` đã có ở trong này rồi, nhưng mà nó rất nhẹ nên không đủ để nhận diện tiếng Việt.
+
+<div align="center">
+  <img src="https://github.com/NguyenAnhTuan1912/datatable-image-to-text/assets/86825061/5154656e-9261-4db1-b3f2-0071554b73cb" alt="Tesseract path guide"/>
+</div>
+
+Cuối cùng là ấn next và cài đặt. Sau khi cài xong thì kiếm một tấm hình có chữ, bỏ vào trong `python/test/images` rồi lấy tên file đó sửa trong `python/test/image_to_text.py` rồi thực thi script, kết quả sẽ được ghi ra file `python/test/out/regconized.txt`.

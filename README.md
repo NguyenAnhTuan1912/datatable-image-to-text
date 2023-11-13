@@ -32,9 +32,15 @@ Repo này là một phần của đồ án môn học, và nhằm hỗ trợ t�
 Với ý tưởng là người dùng sẽ input vào từ GUI cùng với một số thông tin (nếu có) -> Ứng dụng API sẽ xử lý các thông tin và dùng tiến trình con để "nhờ" chương trình Python tính toán tiếp phần này -> Sau khi xử lý xong thì gửi dữ liệu về cho GUI.
 
 Chương trình python sẽ có thể bao gồm 1 hoặc nhiều chương trình con trong đó dưới dạng script dùng để thực hiện 1 hoặc nhiều các công việc cụ thể trong phần demo.
-![image](https://github.com/NguyenAnhTuan1912/datatable-image-to-text/assets/86825061/0efff10f-97e6-4d29-b6f5-add35c27a38d)
+![system_architecture](https://github.com/NguyenAnhTuan1912/datatable-image-to-text/assets/86825061/d48a7ffc-78c9-475d-85b7-37b664cf49cc)
 
-Trong mỗi phần của repo (folder gui, nodejs và python) sẽ được nói rõ hơn.
+Ảnh trên là tông qua sơ qua về kiến trúc của hệ thống và cách thức mà nó hoạt động. Chúng ta cần một "cái gì đó" thân thiện với người dùng, để họ có thể nhập dữ liệu và lấy kết quả luôn ở đó, thì ở đây mình sẽ có GUI (Graphic User Interface), là một ứng dụng web cho phép người dùng tương tác và có được cái nhìn trực quan về kết quả.
+
+Tiếp theo, là hệ thống phải có một thằng trung gian để có thể giao tiếp giữa GUI và Python Programms (Hình trên chỉ có một, nhưng thực chất sẽ có nhiều hơn 1), thì ở đây mình sẽ có BackEnd được xây dựng với NodeJS. Chính bản thân BackEnd cũng sẽ xử lý dữ liệu, và cung cấp các APIs cho GUI để sử dụng. Khi mọi thứ được cài đặt xong, GUI gọi tới một API bất kì, thì BackEnd sẽ start một process con để chạy Python Program(s).
+
+Cuối cùng là phần quan trọng nhất của hệ thống, Python Program(s). Các chương trình Python này sẽ tiếp nhận các nhiệm vụ cụ thể từ BackEnd. Nó sẽ xử lý input data và ghi đè nó vào lại vị trí cũ. Việc còn lại là BackEnd sẽ tải output dưới sự giám sát của người dùng, đơn giản thế thôi.
+
+__Note__: Trong mỗi phần của repo (folder gui, nodejs và python) sẽ được nói rõ hơn.
 
 ## Test
 Để test một số tính năng như là làm mờ ảnh, chuyển ảnh màu thành ảnh xám và nhận diện khuôn mặt. Mục đích test là để trực quan cách javascript và python làm việc với nhau, cũng như là cách mà ứng dụng nó hoạt động.
