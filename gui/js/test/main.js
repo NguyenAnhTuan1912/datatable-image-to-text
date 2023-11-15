@@ -2,6 +2,7 @@
 import { BlurImage } from "../components/blur_image/BlurImage.js";
 import { ChangeColorImage } from "../components/change_color_image/ChangeColorImage.js";
 import { FaceRecognition } from "../components/face_recognition/FaceRecognition.js";
+import { ScanText} from "../components/scan_text/Scan_text.js"
 import { Tab } from "../components/tab/Tab.js";
 
 // Định nghĩa hàm main
@@ -14,12 +15,14 @@ export function main(app, utils) {
   const blrimg = new BlurImage(app, utils);
   const grimg = new ChangeColorImage(app, utils);
   const freg = new FaceRecognition(app, utils);
+  const scan = new ScanText(app, utils);
 
   const tab = new Tab(app, utils,
     [
       ["blur-image", { label: "Làm mờ ảnh", element: blrimg.getRef() }],
       ["change-color-image", { label: "Chuyển đổi màu ảnh (đơn giản)", element: grimg.getRef() }],
-      ["face-recognition", { label: "Nhận diện khuôn mặt", element: freg.getRef() }]
+      ["face-recognition", { label: "Nhận diện khuôn mặt", element: freg.getRef() }],
+      ["scan_text",{label: "Quét văn bản",element :scan.getRef() }]
     ]
   );
 
@@ -33,6 +36,7 @@ export function main(app, utils) {
           <li>Làm mờ ảnh</li>
           <li>Chuyển đổi ảnh màu thành ảnh trắng đen</li>
           <li>Nhận diện khuôn mặt</li>
+          <li>Quét văn bản</li>
         </ol>
       </div>
     </header>
