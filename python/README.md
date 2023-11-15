@@ -45,3 +45,109 @@ Sau khi vào link, thì ấn vào biểu tượng tải về. Sau đó vào thư
 </div>
 
 Cuối cùng là ấn next và cài đặt. Sau khi cài xong thì kiếm một tấm hình có chữ, bỏ vào trong `python/test/images` rồi lấy tên file đó sửa trong `python/test/image_to_text.py` rồi thực thi script, kết quả sẽ được ghi ra file `python/test/out/regconized.txt`.
+
+## Image Preprocessing
+Trước khi đọc tiếp phần idea trong này, thì xin mời đọc [ở đây](https://docs.google.com/document/d/1r80sEoKBzR5vyn8d18Chj9vM5H4zEoGL21VuD_rg9MA/edit) trước. Phần này là phần ý tưởng chính cho giai đoạn Image Preprocessing (phần quan trọng nhất trong bài này).
+
+Như đã đề cập ở trong bài, thì bảng có thể sẽ có ngoại lệ, nên mình phải chia ra xử lý 2 trường hợp riêng biệt.
+
+### Normal Table
+Bảng thường sẽ là bảng có đầy đủ các đường viền của từ ô dữ liệu, đây là loại bảng lý tưởng nhất trong việc nhận diện và trích xuất dữ liệu trong bảng. Với bảng ở dạng này, thì việc duy nhất mà mình cần phải làm là lấy ra các đường viền dọc và ngang để tìm contours cho từng ô dữ liệu, sau cùng là Bounding Box. Giống với ý tưởng hiện tại.
+
+```python
+def __n_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
+  """
+  Hàm này dùng để xử lý ảnh có chứa kiểu bảng bình thường (Normal table).
+
+  Args:
+    binary_img (UMat): Ảnh nhị phân đã được xử lý trước đó.
+    img_shape (Tuple(int, int)): Kích thước của ảnh.
+
+  Trả về:
+    UMat: Ảnh nhị phân đã qua xử lý. Là ảnh mà các đường viền trong bảng được làm dày.
+  """
+  # Khai báo một số biến.
+  kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+  kernel_length = img_shape[1] // 80
+  
+  # Tạo lần lượt 2 kernels để erode và dilate cạnh ngang và cạnh dọc
+  vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, kernel_length))
+  horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_length, 1))
+  
+  # Erode ảnh để lấy lần lượt cạnh dọc và ngang
+  eroded_vertical_img = cv2.erode(binary_img, vertical_kernel, iterations = 5)
+  eroded_horizontal_img = cv2.erode(binary_img, horizontal_kernel, iterations = 5)
+
+  # Làm sáng và dày các cạnh với dilate
+  vertical_lines = cv2.dilate(eroded_vertical_img, vertical_kernel, iterations = 5)
+  horizontal_lines = cv2.dilate(eroded_horizontal_img, horizontal_kernel, iterations = 5)
+  
+  alpha = 0.5
+  beta = 1.0 - alpha
+  vertical_horizontal_lines = cv2.addWeighted(vertical_lines, alpha, horizontal_lines, beta, 1)
+  vertical_horizontal_lines = cv2.erode(~vertical_horizontal_lines, kernel, iterations = 2)
+  thresh, vertical_horizontal_lines = cv2.threshold(vertical_horizontal_lines, 128, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
+  return  vertical_horizontal_lines
+```
+
+### Exceptional Tables
+Các bảng ngoại lệ là những bảng mà trong đó nó khác với bảng thưởng ở chỗ là nó có thể chỉ có viền ngang hoặc viền dọc. Hoặc chỉ có đường viền bao quanh bảng... Với bảng dạng này thì không thể nào xử lý như với bảng thông thường được, buộc phải xử lý theo từng loại bảng riêng biệt. Trong đó có một số loại bảng như sau:
+- Bảng chỉ có viền ngang ("Only horizontal lines" table).
+- Bảng chỉ có viền dọc ("Only vertical lines" table).
+- Bảng chỉ có viền bao bên ngoài ("Only borders" table).
+- Bảng không có viền (khó) ("Non borders" table).
+
+Điểm chung cho tất cả các dạng bảng kiểu này là đều cùng xử lý dilate từ, ký tự. Nghĩa là mình không tìm contours và bouding boxes cho các ô dữ liệu nữa, mà thay vào đó là tìm contours và bounding boxes cho từng từ. Trong quá trình tìm các contours và bounding boxes thì có thể sẽ tìm "dư" một số cnts hoặc bboxes. Thì với mỗi các xử lý từ loại ảnh bên dưới, mà mình sẽ lấy được những cnts và bboxes cần thiết. Để làm được như thế thì mình cần phải tìm được *biên*.
+
+Các bảng kiểu này nó "bị hở" (trừ thằng có viền bao bên ngoài ra) trong quá trình tìm contours cho ô dữ liệu, cho nên là mình phải hướng đến cách tìm khác. Còn thằng mà *chỉ có viền bao bên ngoài* thì nó lại "bị rỗng" ở bên trong, khiến cho việc tìm các ô dữ liệu không chính xác. Cho nên nó cũng sẽ có cách xử lý khác. Còn bảng không có viền thì ở trường hợp đặc biệt hơn.
+
+#### "Only horizontal lines" table
+Với những bảng mà chỉ có viền ngang, thì các contours sẽ là của các viền ngang đó, tuy nhiên, mình chỉ cần quan tâm tới viền đầu và viền cuối để tìm ra *biên* của bảng. Khi đã tìm ra được *biên* rồi thì lúc này mình chỉ cần lọc các contours của từ mà đã được tìm kiếm trước đó.
+
+```python
+def __ohl_table_image_preprocess(binary_img, img_shape):
+  # Copy ảnh
+  copy = binary_img.copy()
+  
+  # Khai báo một số biến.
+  kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (8, 8))
+  kernel_length = img_shape[1] // 80
+  
+  # Lấy kernel để erode và dilate đường viền ngang.
+  horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_length, 1))
+  
+  eroded_horizontal_img = cv2.erode(binary_img, horizontal_kernel, iterations = 5)
+  result = cv2.dilate(eroded_horizontal_img, horizontal_kernel, iterations = 5)
+  
+  # Xóa các đường viền ngang.
+  # Tìm contours của các đường này trước.
+  cnts, cnts_hierarchy = cv2.findContours(result, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+  
+  cv2.drawContours(copy, cnts, -1, (0, 0, 0), 3)
+  
+  cv2.imshow("Remove horizontal line", copy)
+  cv2.waitKey(0)
+  
+  # Dilate chữ
+  result = cv2.dilate(copy, kernel, iterations = 1)
+  
+  return result
+```
+
+#### "Only vertical lines" table
+Giống với cách xử lý của `"Only horizontal lines" table`, thì ở đây mình phải tìm được cạnh đọc đầu và cuối của bảng, từ đó sẽ tìm được *biên* và lọc các contours của từ mà đã được tìm kiếm trước đó.
+
+```python
+```
+
+#### "Only borders" table
+Với thằng này thì mình chỉ cần lấy contour của table (viền ngoài) để tạo ra *biên*, phần còn lại là xử lý giống với hai thằng ở trên.
+
+```python
+```
+
+### "Non borders" table
+Đây là trường hợp ngoại lệ đặc biệt khó nhất. Nó khó nhất là bởi vì nó chỉ có cấu trúc của bảng (thực chất nó ở hai dạng là vừa có vừa không, nhưng khi cho vào để nhận diện thì nó được mặc định là có cấu trúc dạng dảng), mà không thật sự là một bảng, nhưng trong mộ vài trường hợp thì nó vẫn là một bảng, hơi rối nhỉ. Vì thể, dữ liệu của nó có thể sẽ bị xen lẫn như các trường hợp ở trên, nhưng mà mình không tìm được *biên* để lọc ra các contours hợp lệ.
+
+```python
+```
