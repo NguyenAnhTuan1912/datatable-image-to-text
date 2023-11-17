@@ -23,5 +23,7 @@ class TableType(Enum):
   Cho dù bên trong có đường viền đi chăng nữa thì cũng tính là cài này.
   - Non borders table: là bảng không có đường viền nào cả.
   """
-  NORMAL_TABLE = 1
+  NORMAL = 1
   ONLY_HORIZONTAL_LINES = 2
+  ONLY_VERTICAL_LINES = 3
+  ONLY_COVERED_BORDERS = 4

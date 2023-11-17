@@ -7,7 +7,7 @@ sys.path.append('./')
 
 from python.definitions import TableType
 
-def characters_localize(binary_img, type: TableType = TableType.NORMAL_TABLE) -> tuple([[cv2.UMat], [cv2.typing.Rect]]):
+def characters_localize(binary_img, type: TableType = TableType.NORMAL) -> tuple([[cv2.UMat], [cv2.typing.Rect]]):
   """
   Hàm này sẽ định vị trí của các từ trong bảng.
 
@@ -20,11 +20,19 @@ def characters_localize(binary_img, type: TableType = TableType.NORMAL_TABLE) ->
   """
   cnts, cnts_hierarchy = [1, 2]
   bboxes = []
-  if type == TableType.NORMAL_TABLE:
+  if type == TableType.NORMAL:
     cnts, cnts_hierarchy = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     bboxes = [cv2.boundingRect(ccnt) for ccnt in cnts]
     
   if type == TableType.ONLY_HORIZONTAL_LINES:
+    cnts, cnts_hierarchy = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    bboxes = [cv2.boundingRect(ccnt) for ccnt in cnts]
+    
+  if type == TableType.ONLY_VERTICAL_LINES:
+    cnts, cnts_hierarchy = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    bboxes = [cv2.boundingRect(ccnt) for ccnt in cnts]
+    
+  if type == TableType.ONLY_COVERED_BORDERS:
     cnts, cnts_hierarchy = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     bboxes = [cv2.boundingRect(ccnt) for ccnt in cnts]
     

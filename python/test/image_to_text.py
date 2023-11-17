@@ -11,7 +11,7 @@ import numpy as np
 sys.path.append('./')
 
 from python.definitions import get_path, TableType
-from python.modules.imgpreprocessing import image_preprocess
+from python.modules.imgpreprocessing import image_preprocess, crop_image, find_table_bboxes, convert_to_binary
 from python.modules.characterslocalization import characters_localize
 
 # KHAI BÁO BIẾN
@@ -23,7 +23,7 @@ builds_path = get_path("builds")
 outputtxt_path = get_path(out_path, "recognized.txt")
 # Biến khác
 used_lang = "vie"
-table_type = TableType.ONLY_HORIZONTAL_LINES
+table_type = TableType.ONLY_COVERED_BORDERS
 
 # Gán đường dẫn tới file `tesseract.exe` vừa mới cài đặt ở bước trước vào đây.
 pytesseract.pytesseract.tesseract_cmd = builds_path + "/tesseract/tesseract.exe"
@@ -32,19 +32,30 @@ pytesseract.pytesseract.tesseract_cmd = builds_path + "/tesseract/tesseract.exe"
 print("Languages that Tesseract OCR supports: ", pytesseract.get_languages())
 
 # Đọc ảnh cần trích xuất chữ
-img = cv2.imread(images_path + "/datatable07.jpg")
+img = cv2.imread(images_path + "/datatable03.png")
 
 # Tiến hành giai đoạn 1: Tiền xử lý ảnh
-binary_img, inverted_binary_img, img_shape = image_preprocess(img, table_type)
+# binary_img, inverted_binary_img, img_shape = image_preprocess(img, table_type)
+
+binary_img, inverted_binary_img, img_shape = convert_to_binary(img)
 
 cv2.imshow("Lines", binary_img)
 cv2.waitKey(0)
+
+# Định vị trí của table
+table_bbox, bboxes, heights = find_table_bboxes(binary_img, img_shape)
+
+# Lấy ra các thông tin của bounding box của table.
+x, y, w, h = table_bbox
+
+# Cắt lấy ảnh table
+table = crop_image(img, x, y, w, h)
 
 # Sắp xếp các countours
 # contours = sorted(contours, key=lambda x: cv2.contourArea(x))
 
 # Tiến hành giai đoạn 3 và 4
-cnts, bboxes = characters_localize(binary_img, table_type)
+# cnts, bboxes = characters_localize(binary_img, table_type)
 
 # Tạo file txt nếu chưa có.
 file = open(outputtxt_path, "w+")
@@ -53,14 +64,14 @@ file.close()
 
 # Khai báo một biến để lưu kết quả.
 text = ""
-rect = None
+rect = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
 iterationTimes = 0
 
 # Tìm height của mỗi bouding box
-heights = [bboxes[i][3] for i in range(len(bboxes))]
+# heights = [bboxes[i][3] for i in range(len(bboxes))]
 
 # Tìm height của table
-table_height = np.max(heights)
+# table_height = np.max(heights)
 
 # Tính trung bình cộng của các height.
 # mean_of_height = np.mean(heights)
@@ -69,28 +80,31 @@ print("Image's Area: ", img_shape[0] * img_shape[1])
 
 # Với mỗi contour được xác định, thì mình sẽ lấy ra các bounding box tương ứng.
 # Các tọa độ này sẽ được dùng để cắt ra các ảnh con chứa ảnh.
-for bbox in bboxes:
-  # Tìm bounding box gồm tọa độ x, y, chiều rộng w và chiều cao h.
-	x, y, w, h = bbox
+# for bbox in bboxes:
+#   # Tìm bounding box gồm tọa độ x, y, chiều rộng w và chiều cao h.
+# 	x, y, w, h = bbox
  
-	# Nếu như height của một box mà lớn hơn mean of height, thì loại box đó ra
-	if h >= table_height: continue
+# 	# Nếu như height của một box mà lớn hơn mean of height, thì loại box đó ra
+# 	# if h >= table_height: continue
 	
-	# Vẽ một hình chữ nhật màu xanh lá để cho trực quan (không ảnh hưởng)
-	rect = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+# 	# Vẽ một hình chữ nhật màu xanh lá để cho trực quan (không ảnh hưởng)
+# 	rect = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
 	
-	# Cắt ảnh
-	cropped = inverted_binary_img[y:y + h, x:x + w]
+# 	# Cắt ảnh
+# 	cropped = crop_image(inverted_binary_img, x, y, w, h)
 	
-	# Apply OCR on the cropped image
-	# predict = pytesseract.image_to_string(cropped, config='--psm 6', lang = used_lang)
-	# text += predict
-	# print("Predict: ", predict)
-	# cv2.imshow("Cropped", cropped)
-	# cv2.waitKey(0)
-	# text += "\n"
+# 	# Apply OCR on the cropped image
+# 	# predict = pytesseract.image_to_string(cropped, config='--psm 6', lang = used_lang)
+# 	# text += predict
+# 	# print("Predict: ", predict)
+# 	# cv2.imshow("Cropped", cropped)
+# 	# cv2.waitKey(0)
+# 	# text += "\n"
  
-cv2.imshow("Localization", rect)
+cv2.imshow("Table localization", rect)
+cv2.waitKey(0)
+
+cv2.imshow("Table", table)
 cv2.waitKey(0)
 
 # Mở file và ghi kết quả vào file txt.
