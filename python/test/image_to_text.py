@@ -23,7 +23,7 @@ builds_path = get_path("builds")
 outputtxt_path = get_path(out_path, "recognized.txt")
 # Biến khác
 used_lang = "vie"
-table_type = TableType.ONLY_COVERED_BORDERS
+table_type = TableType.ONLY_HORIZONTAL_LINES
 
 # Gán đường dẫn tới file `tesseract.exe` vừa mới cài đặt ở bước trước vào đây.
 pytesseract.pytesseract.tesseract_cmd = builds_path + "/tesseract/tesseract.exe"
@@ -32,18 +32,23 @@ pytesseract.pytesseract.tesseract_cmd = builds_path + "/tesseract/tesseract.exe"
 print("Languages that Tesseract OCR supports: ", pytesseract.get_languages())
 
 # Đọc ảnh cần trích xuất chữ
-img = cv2.imread(images_path + "/datatable03.png")
+img = cv2.imread(images_path + "/datatable13.png")
+
+cv2.imshow("Original", img)
+cv2.waitKey(0)
 
 # Tiến hành giai đoạn 1: Tiền xử lý ảnh
 # binary_img, inverted_binary_img, img_shape = image_preprocess(img, table_type)
 
 binary_img, inverted_binary_img, img_shape = convert_to_binary(img)
 
-cv2.imshow("Lines", binary_img)
+print("Image size: ", img_shape)
+
+cv2.imshow("Binary Image", binary_img)
 cv2.waitKey(0)
 
 # Định vị trí của table
-table_bbox, bboxes, heights = find_table_bboxes(binary_img, img_shape)
+table_bbox, bboxes, heights = find_table_bboxes(binary_img, img_shape, table_type)
 
 # Lấy ra các thông tin của bounding box của table.
 x, y, w, h = table_bbox

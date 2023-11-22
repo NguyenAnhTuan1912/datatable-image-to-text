@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from collections import namedtuple
 import sys
 
 # Sử dụng sys để add utils vào mới có thể dùng module bên ngoài.
@@ -7,6 +8,8 @@ import sys
 sys.path.append('./')
 
 from python.definitions import TableType
+
+TableBBox = namedtuple("TableBBox", ["x", "y", "w", "h"])
 
 def crop_image(img: cv2.UMat, x, y, w, h) -> cv2.UMat:
   """
@@ -25,7 +28,214 @@ def crop_image(img: cv2.UMat, x, y, w, h) -> cv2.UMat:
   """
   return img[y:y + h, x:x + w]
 
-def find_table_bboxes(binary_image: cv2.UMat, img_shape: tuple([int, int])):
+def __find_ohl_table_bboxes(
+  binary_image: cv2.UMat,
+  img_shape: tuple([int, int])
+) -> tuple([TableBBox, [cv2.typing.Rect], [int]]):
+  """
+  Hàm này dùng để tìm bounding box cho dạng OHL Table.
+
+  Args:
+    binary_image (cv2.UMat): Ảnh nhị phân có chứa table.
+    img_shape (tuple([int, int])): Kích thước của ảnh.
+
+  Returns:
+    tuple([TableBBox, [cv2.typing.Rect], [int]]): Kết quả trả về bao gồm:
+      - Bounding box của bảng.
+      - Các bounding box khác.
+      - Một mảng chiều cao của các bounding box (không có của bảng).
+  """
+  # Copy ảnh
+  copy = binary_image.copy()
+  
+  # Khai báo một số biến.
+  kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18))
+  kernel_length = img_shape[1] // 80
+  
+  # Lấy kernel để erode và dilate đường viền ngang.
+  horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_length, 1))
+  
+  eroded_horizontal_img = cv2.erode(binary_image, horizontal_kernel, iterations = 5)
+  processed_binary_image = cv2.dilate(eroded_horizontal_img, horizontal_kernel, iterations = 5)
+  
+  cv2.imshow("Processed Binary Image (OVL)", processed_binary_image)
+  cv2.waitKey(0)
+  
+  # Xóa các đường viền ngang.
+  # Tìm contours của các đường này trước.
+  cnts, cnts_hierarchy = cv2.findContours(processed_binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+  
+  # Khai báo một số biến
+  N = len(cnts)
+  table_bbox = None
+  firstBBox = None
+  lastBBox = None
+  bboxes = []
+  heights = []
+  index = 0
+  firstBBIndex, lastBBIndex = (0,) * 2
+  max = 0
+  min = img_shape[1]
+  xTable, yTable, wTable, hTable = (0,) * 4
+  
+  for cnt in cnts:
+    bbox = cv2.boundingRect(cnt)
+    x, y, w, h = bbox
+  
+    if y > max:
+      max = y
+      lastBBIndex = index
+      
+    if y < min:
+      min = y
+      firstBBIndex = index
+  
+    heights.append(h)
+    bboxes.append(bbox)
+    
+    index += 1
+  
+  # Tiến hành bỏ 2 bounding box đầu và cuối.
+  if lastBBIndex == N - 1: lastBBIndex = N - 2
+  
+  xfirstBBox, yfirstBBox, wfirstBBox, hfirstBBox = bboxes.pop(firstBBIndex)
+  xlastBBox, ylastBBox, wlastBBox, hlastBBox = bboxes.pop(lastBBIndex)
+  
+  # Bỏ 2 heights của bounding boxes đầu và cuối.
+  heights.pop(firstBBIndex)
+  heights.pop(lastBBIndex)
+  
+  # Tiến hành tìm bouding box cho table.
+  yTable = yfirstBBox
+  hTable = (ylastBBox - yTable) + hlastBBox
+  
+  if xfirstBBox < xlastBBox:
+    xTable = xlastBBox
+  else:
+    xTable = xfirstBBox
+    
+  if xfirstBBox + wfirstBBox < xfirstBBox + wlastBBox:
+    wTable = wfirstBBox
+  else:
+    wTable = wlastBBox
+  
+  table_bbox = TableBBox(xTable, yTable, wTable, hTable)
+  
+  return table_bbox, bboxes, heights
+
+def __find_ovl_table_bboxes(
+  binary_image: cv2.UMat,
+  img_shape: tuple([int, int])
+) -> tuple([TableBBox, [cv2.typing.Rect], [int]]):
+  """
+  Hàm này dùng để tìm bounding box cho dạng OVL Table.
+
+  Args:
+    binary_image (cv2.UMat): Ảnh nhị phân có chứa table.
+    img_shape (tuple([int, int])): Kích thước của ảnh.
+
+  Returns:
+    tuple([TableBBox, [cv2.typing.Rect], [int]]): Kết quả trả về bao gồm:
+      - Bounding box của bảng.
+      - Các bounding box khác.
+      - Một mảng chiều cao của các bounding box (không có của bảng).
+  """
+  # Copy ảnh
+  copy = binary_image.copy()
+  
+  # Khai báo một số biến.
+  kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18))
+  kernel_length = img_shape[1] // 80
+  
+  # Lấy kernel để erode và dilate đường viền ngang.
+  vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, kernel_length))
+  
+  eroded_vertical_img = cv2.erode(binary_image, vertical_kernel, iterations = 5)
+  processed_binary_image = cv2.dilate(eroded_vertical_img, vertical_kernel, iterations = 5)
+  
+  cv2.imshow("Processed Binary Image (OVL)", processed_binary_image)
+  cv2.waitKey(0)
+  
+  # Tìm contour của bảng
+  cnts, cnts_hierarchy = cv2.findContours(processed_binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+  
+  # Khai báo một số biến
+  N = len(cnts)
+  table_bbox = None
+  firstBBox = None
+  lastBBox = None
+  bboxes = []
+  heights = []
+  index = 0
+  firstBBIndex, lastBBIndex = (0,) * 2
+  max = 0
+  min = img_shape[0]
+  xTable, yTable, wTable, hTable = (0,) * 4
+  
+  for cnt in cnts:
+    bbox = cv2.boundingRect(cnt)
+    x, y, w, h = bbox
+  
+    if x > max:
+      max = x
+      lastBBIndex = index
+      
+    if x < min:
+      min = x
+      firstBBIndex = index
+  
+    heights.append(h)
+    bboxes.append(bbox)
+    
+    index += 1
+  
+  # Tiến hành bỏ 2 bounding box đầu và cuối.
+  if lastBBIndex == N - 1: lastBBIndex = N - 2
+  
+  xfirstBBox, yfirstBBox, wfirstBBox, hfirstBBox = bboxes.pop(firstBBIndex)
+  xlastBBox, ylastBBox, wlastBBox, hlastBBox = bboxes.pop(lastBBIndex)
+  
+  # Bỏ 2 heights của bounding boxes đầu và cuối.
+  heights.pop(firstBBIndex)
+  heights.pop(lastBBIndex)
+  
+  # Tiến hành tìm bouding box cho table.
+  xTable = xfirstBBox
+  wTable = (xlastBBox - xTable) + wlastBBox
+  
+  if yfirstBBox < ylastBBox:
+    yTable = yfirstBBox
+  else:
+    yTable = ylastBBox
+    
+  if ylastBBox + hlastBBox < yfirstBBox + hfirstBBox:
+    hTable = hfirstBBox
+  else:
+    hTable = hlastBBox
+  
+  table_bbox = TableBBox(xTable, yTable, wTable, hTable)
+  
+  return table_bbox, bboxes, heights
+
+def __find_n_ocb_table_bboxes(
+  binary_image: cv2.UMat,
+  img_shape: tuple([int, int])
+) -> tuple([TableBBox, [cv2.typing.Rect], [int]]):
+  """
+  Hàm này dùng để tìm bounding box cho 2 loại table là:
+    - Normal table.
+    - Only coverd border table.
+
+  Args:
+    binary_image (cv2.UMat): Ảnh nhị phân có chứa table.
+    img_shape (tuple([int, int])): Kích thước của ảnh.
+
+  Returns:
+    tuple([TableBBox, [cv2.typing.Rect], [int]]): Kết quả trả về bao gồm:
+      - Bounding box của bảng.
+      - Các bounding box khác.
+      - Một mảng chiều cao của các bounding box (không có của bảng).
+  """
   processed_binary_image = __n_table_image_preprocess(binary_image, img_shape)
   
   cv2.imshow("Processed Binary Image", processed_binary_image)
@@ -43,7 +253,7 @@ def find_table_bboxes(binary_image: cv2.UMat, img_shape: tuple([int, int])):
   
   for cnt in cnts:
     bbox = cv2.boundingRect(cnt)
-    x, w, y, h = bbox
+    x, y, w, h = bbox
     
     if h > max:
       max = h
@@ -53,9 +263,38 @@ def find_table_bboxes(binary_image: cv2.UMat, img_shape: tuple([int, int])):
     bboxes.append(bbox)
     
   heights.pop(index)
-  table_bbox = bboxes.pop(index)
+  x, y, w, h = bboxes.pop(index)
+  table_bbox = TableBBox(x, y, w, h)
   
   return table_bbox, bboxes, heights
+
+def find_table_bboxes(
+  binary_image: cv2.UMat,
+  img_shape: tuple([int, int]),
+  type: TableType.NORMAL
+) -> tuple([cv2.typing.Rect, [cv2.typing.Rect], [int]]):
+  """
+  Tìm bounding box cho từng loại bảng, từ non-border table.
+
+  Args:
+    binary_image (cv2.UMat): Ảnh nhị phân có chứa table.
+    img_shape (tuple([int, int])): Kích thước của ảnh.
+    type (TableType): Kiểu của bảng.
+
+  Returns:
+    tuple([cv2.typing.Rect, [cv2.typing.Rect], [int]]):
+      - Bounding box của bảng.
+      - Các bounding box khác.
+      - Một mảng chiều cao của các bounding box (không có của bảng).
+  """
+  if type == TableType.NORMAL or type == TableType.ONLY_COVERED_BORDERS:
+    return __find_n_ocb_table_bboxes(binary_image, img_shape)
+  
+  if type == TableType.ONLY_VERTICAL_LINES:
+    return __find_ovl_table_bboxes(binary_image, img_shape)
+  
+  if type == TableType.ONLY_HORIZONTAL_LINES:
+    return __find_ohl_table_bboxes(binary_image, img_shape)
 
 def convert_to_binary(img: cv2.UMat) -> tuple([cv2.UMat, cv2.UMat, tuple([int, int])]):
   """
@@ -63,25 +302,25 @@ def convert_to_binary(img: cv2.UMat) -> tuple([cv2.UMat, cv2.UMat, tuple([int, i
   của ảnh nhị phân cùng với kích thước của ảnh.
 
   Args:
-      img (cv2.UMat): Ảnh cần chuyển thành nhị phân.
+    img (cv2.UMat): Ảnh cần chuyển thành nhị phân.
 
   Returns:
-      tuple([cv2.UMat, cv2.UMat, tuple([int, int])]): Ảnh nhị phân và nghịch đảo bit của ảnh nhị phân.
+    tuple([cv2.UMat, cv2.UMat, tuple([int, int])]): Ảnh nhị phân và nghịch đảo bit của ảnh nhị phân.
   """
-  # Chuyển ảnh màu thành ảnh xám (GRAY SCALE)
-  gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-  
   # Chuyển ảnh màu thành ảnh xám (GRAY SCALE)
   result = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
   
-  # Tiến hành chuyển thành ảnh nhị phân
-  thresh, result = cv2.threshold(gray, 128, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
-  inverted_binary_img = ~result
+  # Làm mờ ảnh
+  # result = cv2.GaussianBlur(result, (5, 5), 0)
   
-  return result, inverted_binary_img, np.array(result).shape
+  # Tiến hành chuyển thành ảnh nhị phân
+  thresh, result = cv2.threshold(result, 127, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
+  inverted_binary_image = ~result
+  
+  return result, inverted_binary_image, np.array(result).shape
 
 def __n_table_image_preprocess(
-  binary_img: cv2.UMat,
+  binary_image: cv2.UMat,
   img_shape: tuple([int, int]),
   kl_division: int = 80,
   ksize: tuple([int, int]) = (3, 3)
@@ -90,7 +329,7 @@ def __n_table_image_preprocess(
   Hàm này dùng để xử lý ảnh có chứa kiểu bảng bình thường (Normal table).
 
   Args:
-    binary_img (cv2.UMat): Ảnh nhị phân cần được xử lý.
+    binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
     img_shape (tuple(int, int)): Kích thước của ảnh.
     kl_division (int): Số chia dùng trong phép tính kernel length.
     ksize (tuple(int, int)): Kích thước của kernel dùng để erode kết quả.
@@ -107,12 +346,18 @@ def __n_table_image_preprocess(
   horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_length, 1))
   
   # Erode ảnh để lấy lần lượt cạnh dọc và ngang
-  eroded_vertical_img = cv2.erode(binary_img, vertical_kernel, iterations = 5)
-  eroded_horizontal_img = cv2.erode(binary_img, horizontal_kernel, iterations = 5)
+  eroded_vertical_img = cv2.erode(binary_image, vertical_kernel, iterations = 5)
+  eroded_horizontal_img = cv2.erode(binary_image, horizontal_kernel, iterations = 5)
 
   # Làm sáng và dày các cạnh với dilate
   vertical_lines = cv2.dilate(eroded_vertical_img, vertical_kernel, iterations = 5)
   horizontal_lines = cv2.dilate(eroded_horizontal_img, horizontal_kernel, iterations = 5)
+  
+  cv2.imshow("Vertical Lines", vertical_lines)
+  cv2.waitKey(0)
+  
+  cv2.imshow("Horizontal Lines", horizontal_lines)
+  cv2.waitKey(0)
   
   alpha = 0.5
   beta = 1.0 - alpha
@@ -122,19 +367,19 @@ def __n_table_image_preprocess(
   
   return  result
 
-def __ohl_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
+def __ohl_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   """
   Hàm này sẽ xử lý ảnh mà bảng của nó chỉ có các đường viền ngang (Only horizontal lines table).
 
   Args:
-      binary_img (cv2.UMat): Ảnh nhị phân cần được xử lý.
+      binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
       img_shape (cv2.UMat): Kích thước của ảnh.
 
   Returns:
       cv2.UMat: Ảnh nhị phân đã được xử lý.
   """
   # Copy ảnh
-  copy = binary_img.copy()
+  copy = binary_image.copy()
   
   # Khai báo một số biến.
   kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (18, 18))
@@ -143,7 +388,7 @@ def __ohl_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
   # Lấy kernel để erode và dilate đường viền ngang.
   horizontal_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_length, 1))
   
-  eroded_horizontal_img = cv2.erode(binary_img, horizontal_kernel, iterations = 5)
+  eroded_horizontal_img = cv2.erode(binary_image, horizontal_kernel, iterations = 5)
   result = cv2.dilate(eroded_horizontal_img, horizontal_kernel, iterations = 5)
   
   # Xóa các đường viền ngang.
@@ -160,19 +405,19 @@ def __ohl_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
   
   return result
 
-def __ovl_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
+def __ovl_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   """
   Hàm này sẽ xử lý ảnh mà bảng của nó chỉ có các đường viền dọc (Only vertical lines table).
 
   Args:
-      binary_img (cv2.UMat): Ảnh nhị phân cần được xử lý.
+      binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
       img_shape (cv2.UMat): Kích thước của ảnh.
 
   Returns:
       cv2.UMat: Ảnh nhị phân đã được xử lý.
   """
   # Copy ảnh
-  copy = binary_img.copy()
+  copy = binary_image.copy()
   
   # Khai báo một số biến.
   kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 6))
@@ -181,7 +426,7 @@ def __ovl_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
   # Lấy kernel để erode và dilate đường viền ngang.
   vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, kernel_length))
   
-  eroded_vertical_img = cv2.erode(binary_img, vertical_kernel, iterations = 5)
+  eroded_vertical_img = cv2.erode(binary_image, vertical_kernel, iterations = 5)
   result = cv2.dilate(eroded_vertical_img, vertical_kernel, iterations = 5)
   
   # Xóa các đường viền dọc.
@@ -198,12 +443,12 @@ def __ovl_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
   
   return
 
-def __ocb_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
+def __ocb_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   """
   Hàm này sẽ xử lý ảnh mà bảng của nó chỉ có các đường viền bao quanh (Only borders table).
 
   Args:
-      binary_img (cv2.UMat): Ảnh nhị phân cần được xử lý.
+      binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
       img_shape (cv2.UMat): Kích thước của ảnh.
 
   Returns:
@@ -212,9 +457,9 @@ def __ocb_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
   # Khai báo một số biến.
   kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 6))
   
-  result = __n_table_image_preprocess(binary_img, img_shape)
+  result = __n_table_image_preprocess(binary_image, img_shape)
   
-  copy = binary_img.copy()
+  copy = binary_image.copy()
   
   cv2.imshow("RESULT", result)
   cv2.waitKey(0)
@@ -233,7 +478,7 @@ def __ocb_table_image_preprocess(binary_img, img_shape) -> cv2.UMat:
   
   return result
 
-def __nb_table_image_preprocess(binary_img, img_shape):
+def __nb_table_image_preprocess(binary_image, img_shape):
   return
 
 def image_preprocess(img, type: TableType = TableType.NORMAL) -> tuple([cv2.UMat, cv2.UMat, tuple([int, int])]):
@@ -252,16 +497,16 @@ def image_preprocess(img, type: TableType = TableType.NORMAL) -> tuple([cv2.UMat
   """
   # Tiến hành giai đoạn 1: Tiền xử lý ảnh
   # Chuyển thành ảnh nhị phân
-  binary_img, inverted_binary_img, img_shape = convert_to_binary(gray)
+  binary_image, inverted_binary_image, img_shape = convert_to_binary(gray)
   
   if type == TableType.NORMAL:
-    return __n_table_image_preprocess(binary_img, img_shape), inverted_binary_img, img_shape
+    return __n_table_image_preprocess(binary_image, img_shape), inverted_binary_image, img_shape
   
   if type == TableType.ONLY_HORIZONTAL_LINES:
-    return __ohl_table_image_preprocess(binary_img, img_shape), inverted_binary_img, img_shape
+    return __ohl_table_image_preprocess(binary_image, img_shape), inverted_binary_image, img_shape
   
   if type == TableType.ONLY_VERTICAL_LINES:
-    return __ovl_table_image_preprocess(binary_img, img_shape), inverted_binary_img, img_shape
+    return __ovl_table_image_preprocess(binary_image, img_shape), inverted_binary_image, img_shape
 
   if type == TableType.ONLY_COVERED_BORDERS: 
-    return __ocb_table_image_preprocess(binary_img, img_shape), inverted_binary_img, img_shape
+    return __ocb_table_image_preprocess(binary_image, img_shape), inverted_binary_image, img_shape
