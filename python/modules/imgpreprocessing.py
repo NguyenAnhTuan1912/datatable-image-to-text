@@ -11,6 +11,8 @@ from python.definitions import TableType
 
 TableBBox = namedtuple("TableBBox", ["x", "y", "w", "h"])
 
+ideal_img_size = (1200, 200)
+
 def crop_image(img: cv2.UMat, x, y, w, h) -> cv2.UMat:
   """
   Hàm này dùng để cắt ảnh. Cho vào ảnh cần cắt, gốc tọa độ (x, y) của ảnh mới và chiều rộng, chiều
@@ -27,6 +29,19 @@ def crop_image(img: cv2.UMat, x, y, w, h) -> cv2.UMat:
       cv2.UMat: Ảnh đã được cắt với các thông số được đưa vào.
   """
   return img[y:y + h, x:x + w]
+
+def adjust_size_of_image(img: cv2.UMat, img_shape: tuple([int, int])) -> cv2.UMat:
+  """
+  Hàm này dùng để điều chỉnh kích thước của ảnh cho phù hợp để xử lý.
+
+  Args:
+    img (cv2.UMat): Ảnh cần được điều chỉnh.
+    img_shape: tuple([int, int]): Kích thước của ảnh.
+
+  Returns:
+    cv2.UMat: Ảnh đã được điều chỉnh.
+  """
+  return
 
 def __find_ohl_table_bboxes(
   binary_image: cv2.UMat,
@@ -372,11 +387,11 @@ def __ohl_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   Hàm này sẽ xử lý ảnh mà bảng của nó chỉ có các đường viền ngang (Only horizontal lines table).
 
   Args:
-      binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
-      img_shape (cv2.UMat): Kích thước của ảnh.
+    binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
+    img_shape (cv2.UMat): Kích thước của ảnh.
 
   Returns:
-      cv2.UMat: Ảnh nhị phân đã được xử lý.
+    cv2.UMat: Ảnh nhị phân đã được xử lý.
   """
   # Copy ảnh
   copy = binary_image.copy()
@@ -410,11 +425,11 @@ def __ovl_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   Hàm này sẽ xử lý ảnh mà bảng của nó chỉ có các đường viền dọc (Only vertical lines table).
 
   Args:
-      binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
-      img_shape (cv2.UMat): Kích thước của ảnh.
+    binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
+    img_shape (cv2.UMat): Kích thước của ảnh.
 
   Returns:
-      cv2.UMat: Ảnh nhị phân đã được xử lý.
+    cv2.UMat: Ảnh nhị phân đã được xử lý.
   """
   # Copy ảnh
   copy = binary_image.copy()
@@ -441,18 +456,18 @@ def __ovl_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   # Dilate chữ
   result = cv2.dilate(copy, kernel, iterations = 1)
   
-  return
+  return result
 
 def __ocb_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   """
   Hàm này sẽ xử lý ảnh mà bảng của nó chỉ có các đường viền bao quanh (Only borders table).
 
   Args:
-      binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
-      img_shape (cv2.UMat): Kích thước của ảnh.
+    binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
+    img_shape (cv2.UMat): Kích thước của ảnh.
 
   Returns:
-      cv2.UMat: Ảnh nhị phân đã được xử lý.
+    cv2.UMat: Ảnh nhị phân đã được xử lý.
   """
   # Khai báo một số biến.
   kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 6))
@@ -497,7 +512,7 @@ def image_preprocess(img, type: TableType = TableType.NORMAL) -> tuple([cv2.UMat
   """
   # Tiến hành giai đoạn 1: Tiền xử lý ảnh
   # Chuyển thành ảnh nhị phân
-  binary_image, inverted_binary_image, img_shape = convert_to_binary(gray)
+  binary_image, inverted_binary_image, img_shape = convert_to_binary(img)
   
   if type == TableType.NORMAL:
     return __n_table_image_preprocess(binary_image, img_shape), inverted_binary_image, img_shape

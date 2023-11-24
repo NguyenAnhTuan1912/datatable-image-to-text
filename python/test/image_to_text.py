@@ -32,14 +32,13 @@ pytesseract.pytesseract.tesseract_cmd = builds_path + "/tesseract/tesseract.exe"
 print("Languages that Tesseract OCR supports: ", pytesseract.get_languages())
 
 # Đọc ảnh cần trích xuất chữ
-img = cv2.imread(images_path + "/datatable13.png")
+img = cv2.imread(images_path + "/datatable02.png")
+copy_of_img = img.copy()
 
 cv2.imshow("Original", img)
 cv2.waitKey(0)
 
 # Tiến hành giai đoạn 1: Tiền xử lý ảnh
-# binary_img, inverted_binary_img, img_shape = image_preprocess(img, table_type)
-
 binary_img, inverted_binary_img, img_shape = convert_to_binary(img)
 
 print("Image size: ", img_shape)
@@ -48,7 +47,9 @@ cv2.imshow("Binary Image", binary_img)
 cv2.waitKey(0)
 
 # Định vị trí của table
-table_bbox, bboxes, heights = find_table_bboxes(binary_img, img_shape, table_type)
+table_bbox, temp1, heights = find_table_bboxes(binary_img, img_shape, table_type)
+
+print("Table BBox: ", table_bbox)
 
 # Lấy ra các thông tin của bounding box của table.
 x, y, w, h = table_bbox
@@ -56,11 +57,16 @@ x, y, w, h = table_bbox
 # Cắt lấy ảnh table
 table = crop_image(img, x, y, w, h)
 
+binary_img, inverted_binary_img, img_shape = image_preprocess(table, table_type)
+
+cv2.imshow("Image preproces result", binary_img)
+cv2.waitKey(0)
+
 # Sắp xếp các countours
 # contours = sorted(contours, key=lambda x: cv2.contourArea(x))
 
 # Tiến hành giai đoạn 3 và 4
-# cnts, bboxes = characters_localize(binary_img, table_type)
+cnts, bboxes = characters_localize(binary_img, table_type)
 
 # Tạo file txt nếu chưa có.
 file = open(outputtxt_path, "w+")
@@ -69,7 +75,7 @@ file.close()
 
 # Khai báo một biến để lưu kết quả.
 text = ""
-rect = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+rect = None
 iterationTimes = 0
 
 # Tìm height của mỗi bouding box
@@ -85,31 +91,31 @@ print("Image's Area: ", img_shape[0] * img_shape[1])
 
 # Với mỗi contour được xác định, thì mình sẽ lấy ra các bounding box tương ứng.
 # Các tọa độ này sẽ được dùng để cắt ra các ảnh con chứa ảnh.
-# for bbox in bboxes:
-#   # Tìm bounding box gồm tọa độ x, y, chiều rộng w và chiều cao h.
-# 	x, y, w, h = bbox
+for bbox in bboxes:
+  # Tìm bounding box gồm tọa độ x, y, chiều rộng w và chiều cao h.
+	x, y, w, h = bbox
  
-# 	# Nếu như height của một box mà lớn hơn mean of height, thì loại box đó ra
-# 	# if h >= table_height: continue
+	# Nếu như height của một box mà lớn hơn mean of height, thì loại box đó ra
+	# if h >= table_bbox.h: continue
 	
-# 	# Vẽ một hình chữ nhật màu xanh lá để cho trực quan (không ảnh hưởng)
-# 	rect = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+	# Vẽ một hình chữ nhật màu xanh lá để cho trực quan (không ảnh hưởng)
+	rect = cv2.rectangle(table, (x, y), (x + w, y + h), (0, 255, 0), 2)
 	
-# 	# Cắt ảnh
-# 	cropped = crop_image(inverted_binary_img, x, y, w, h)
+	# Cắt ảnh
+	cropped = crop_image(inverted_binary_img, x, y, w, h)
 	
-# 	# Apply OCR on the cropped image
-# 	# predict = pytesseract.image_to_string(cropped, config='--psm 6', lang = used_lang)
-# 	# text += predict
-# 	# print("Predict: ", predict)
-# 	# cv2.imshow("Cropped", cropped)
-# 	# cv2.waitKey(0)
-# 	# text += "\n"
+	# Apply OCR on the cropped image
+	# predict = pytesseract.image_to_string(cropped, config='--psm 6', lang = used_lang)
+	# text += predict
+	# print("Predict: ", predict)
+	# cv2.imshow("Cropped", cropped)
+	# cv2.waitKey(0)
+	# text += "\n"
  
-cv2.imshow("Table localization", rect)
-cv2.waitKey(0)
+# cv2.imshow("Table localization", rect)
+# cv2.waitKey(0)
 
-cv2.imshow("Table", table)
+cv2.imshow("Table", rect)
 cv2.waitKey(0)
 
 # Mở file và ghi kết quả vào file txt.

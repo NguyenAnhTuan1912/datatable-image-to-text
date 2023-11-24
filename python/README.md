@@ -138,12 +138,83 @@ def __ohl_table_image_preprocess(binary_img, img_shape):
 Giống với cách xử lý của `"Only horizontal lines" table`, thì ở đây mình phải tìm được cạnh đọc đầu và cuối của bảng, từ đó sẽ tìm được *biên* và lọc các contours của từ mà đã được tìm kiếm trước đó.
 
 ```python
+def __ovl_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
+  """
+  Hàm này sẽ xử lý ảnh mà bảng của nó chỉ có các đường viền dọc (Only vertical lines table).
+
+  Args:
+    binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
+    img_shape (cv2.UMat): Kích thước của ảnh.
+
+  Returns:
+    cv2.UMat: Ảnh nhị phân đã được xử lý.
+  """
+  # Copy ảnh
+  copy = binary_image.copy()
+  
+  # Khai báo một số biến.
+  kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 6))
+  kernel_length = img_shape[1] // 80
+  
+  # Lấy kernel để erode và dilate đường viền ngang.
+  vertical_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, kernel_length))
+  
+  eroded_vertical_img = cv2.erode(binary_image, vertical_kernel, iterations = 5)
+  result = cv2.dilate(eroded_vertical_img, vertical_kernel, iterations = 5)
+  
+  # Xóa các đường viền dọc.
+  # Tìm contours của các đường này trước.
+  cnts, cnts_hierarchy = cv2.findContours(result, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+  
+  cv2.drawContours(copy, cnts, -1, (0, 0, 0), 3)
+  
+  cv2.imshow("Remove horizontal line", copy)
+  cv2.waitKey(0)
+  
+  # Dilate chữ
+  result = cv2.dilate(copy, kernel, iterations = 1)
+  
+  return result
 ```
 
 #### "Only borders" table
 Với thằng này thì mình chỉ cần lấy contour của table (viền ngoài) để tạo ra *biên*, phần còn lại là xử lý giống với hai thằng ở trên.
 
 ```python
+def __ocb_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
+  """
+  Hàm này sẽ xử lý ảnh mà bảng của nó chỉ có các đường viền bao quanh (Only borders table).
+
+  Args:
+    binary_image (cv2.UMat): Ảnh nhị phân cần được xử lý.
+    img_shape (cv2.UMat): Kích thước của ảnh.
+
+  Returns:
+    cv2.UMat: Ảnh nhị phân đã được xử lý.
+  """
+  # Khai báo một số biến.
+  kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (6, 6))
+  
+  result = __n_table_image_preprocess(binary_image, img_shape)
+  
+  copy = binary_image.copy()
+  
+  cv2.imshow("RESULT", result)
+  cv2.waitKey(0)
+  
+  # Xóa các đường viền dọc và ngang.
+  # Tìm contours của các đường này trước.
+  cnts, cnts_hierarchy = cv2.findContours(result, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+  
+  cv2.drawContours(copy, cnts, -1, (0, 0, 0), 10)
+  
+  cv2.imshow("Remove horizontal line", copy)
+  cv2.waitKey(0)
+  
+  # Dilate chữ
+  result = cv2.dilate(copy, kernel, iterations = 1)
+  
+  return result
 ```
 
 ### "Non borders" table
