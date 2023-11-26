@@ -11,7 +11,7 @@ import numpy as np
 sys.path.append('./')
 
 from python.definitions import get_path, TableType
-from python.modules.imgpreprocessing import image_preprocess, crop_image, find_table_bboxes, convert_to_binary
+from python.modules.imgpreprocessing import image_preprocess, crop_image, find_table_bboxes, convert_to_binary, adjust_size_of_image
 from python.modules.characterslocalization import characters_localize
 
 # KHAI BÁO BIẾN
@@ -22,7 +22,7 @@ builds_path = get_path("builds")
 # File out ở đây, nếu muốn tên file khác thì sửa ở dưới
 outputtxt_path = get_path(out_path, "recognized.txt")
 # Biến khác
-used_lang = "vie"
+used_lang = "eng"
 table_type = TableType.ONLY_HORIZONTAL_LINES
 
 # Gán đường dẫn tới file `tesseract.exe` vừa mới cài đặt ở bước trước vào đây.
@@ -41,31 +41,30 @@ cv2.waitKey(0)
 # Tiến hành giai đoạn 1: Tiền xử lý ảnh
 binary_img, inverted_binary_img, img_shape = convert_to_binary(img)
 
-print("Image size: ", img_shape)
-
 cv2.imshow("Binary Image", binary_img)
 cv2.waitKey(0)
 
 # Định vị trí của table
-table_bbox, temp1, heights = find_table_bboxes(binary_img, img_shape, table_type)
+table_bbox, bboxes, heights = find_table_bboxes(binary_img, img_shape, table_type)
 
 print("Table BBox: ", table_bbox)
 
 # Lấy ra các thông tin của bounding box của table.
-x, y, w, h = table_bbox
+x, y, wTable, hTable = table_bbox
 
 # Cắt lấy ảnh table
-table = crop_image(img, x, y, w, h)
+table = crop_image(img, x, y, wTable, hTable)
+
+# Thay đổi lại kích thước của image table.
+# if table_type == TableType.ONLY_VERTICAL_LINES or table_type == TableType.ONLY_HORIZONTAL_LINES:
+table = adjust_size_of_image(table, (wTable, hTable))
+table = cv2.erode(table, (3, 3), iterations = 2)
 
 binary_img, inverted_binary_img, img_shape = image_preprocess(table, table_type)
 
 cv2.imshow("Image preproces result", binary_img)
 cv2.waitKey(0)
 
-# Sắp xếp các countours
-# contours = sorted(contours, key=lambda x: cv2.contourArea(x))
-
-# Tiến hành giai đoạn 3 và 4
 cnts, bboxes = characters_localize(binary_img, table_type)
 
 # Tạo file txt nếu chưa có.
@@ -73,10 +72,17 @@ file = open(outputtxt_path, "w+")
 file.write("")
 file.close()
 
+# Sắp xếp lại thứ tự của mảng
+bboxes = bboxes[::-1]
+previous = bboxes[0][3]
+
 # Khai báo một biến để lưu kết quả.
 text = ""
 rect = None
-iterationTimes = 0
+index = 0
+cols = []
+row = []
+N = len(bboxes)
 
 # Tìm height của mỗi bouding box
 # heights = [bboxes[i][3] for i in range(len(bboxes))]
@@ -88,6 +94,8 @@ iterationTimes = 0
 # mean_of_height = np.mean(heights)
 
 print("Image's Area: ", img_shape[0] * img_shape[1])
+print("Table size: ", (wTable, hTable))
+print("Image size: ", img_shape)
 
 # Với mỗi contour được xác định, thì mình sẽ lấy ra các bounding box tương ứng.
 # Các tọa độ này sẽ được dùng để cắt ra các ảnh con chứa ảnh.
@@ -96,7 +104,20 @@ for bbox in bboxes:
 	x, y, w, h = bbox
  
 	# Nếu như height của một box mà lớn hơn mean of height, thì loại box đó ra
-	# if h >= table_bbox.h: continue
+	if h >= hTable:
+		N = N - 1
+		continue
+ 
+	# print("Current Y and Previous: ", y, previous)
+	print("Index and N: ", index, N)
+ 
+	if y > previous:
+		previous = y + h
+		cols.append(row)
+		row = []
+  
+	if index >= N - 1:
+		cols.append(row)
 	
 	# Vẽ một hình chữ nhật màu xanh lá để cho trực quan (không ảnh hưởng)
 	rect = cv2.rectangle(table, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -105,20 +126,24 @@ for bbox in bboxes:
 	cropped = crop_image(inverted_binary_img, x, y, w, h)
 	
 	# Apply OCR on the cropped image
-	# predict = pytesseract.image_to_string(cropped, config='--psm 6', lang = used_lang)
-	# text += predict
+	predict = pytesseract.image_to_string(cropped, config='--psm 6', lang = used_lang)
+	text += predict
+	row.append(predict)
 	# print("Predict: ", predict)
 	# cv2.imshow("Cropped", cropped)
 	# cv2.waitKey(0)
-	# text += "\n"
+	text += "\n"
+	index = index + 1
  
 # cv2.imshow("Table localization", rect)
 # cv2.waitKey(0)
 
-cv2.imshow("Table", rect)
+cv2.imshow("Localization", rect)
 cv2.waitKey(0)
 
+print("Table data: ", cols)
+
 # Mở file và ghi kết quả vào file txt.
-# file = open(outputtxt_path, "a", encoding="utf-8")
-# file.write(text)
-# file.close()
+file = open(outputtxt_path, "a", encoding="utf-8")
+file.write(text)
+file.close()

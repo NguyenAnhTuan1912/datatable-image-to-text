@@ -6,6 +6,7 @@ import sys
 sys.path.append('./')
 
 from python.definitions import TableType
+from python.modules.imgpreprocessing import __find_n_ocb_table_bboxes
 
 def characters_localize(binary_img, type: TableType = TableType.NORMAL) -> tuple([[cv2.UMat], [cv2.typing.Rect]]):
   """
@@ -18,22 +19,27 @@ def characters_localize(binary_img, type: TableType = TableType.NORMAL) -> tuple
   Trả về:
     tuple([[cv2.UMat], [cv2.typing.Rect]]): Các contours.
   """
-  cnts, cnts_hierarchy = [1, 2]
+  cnts, cnts_hierarchy = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
   bboxes = []
-  if type == TableType.NORMAL:
-    cnts, cnts_hierarchy = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    bboxes = [cv2.boundingRect(ccnt) for ccnt in cnts]
+  if type == TableType.NORMAL or type == TableType.ONLY_COVERED_BORDERS:
+    bboxes = []
+    index = -1
+    max = 0
+    for cnt in cnts:
+      bbox = cv2.boundingRect(cnt)
+      x, y, w, h = bbox
+      
+      if h > max:
+        max = h
+        index = index + 1
+      
+      bboxes.append(bbox)
+    bboxes.pop(index)
     
   if type == TableType.ONLY_HORIZONTAL_LINES:
-    cnts, cnts_hierarchy = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     bboxes = [cv2.boundingRect(ccnt) for ccnt in cnts]
     
   if type == TableType.ONLY_VERTICAL_LINES:
-    cnts, cnts_hierarchy = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    bboxes = [cv2.boundingRect(ccnt) for ccnt in cnts]
-    
-  if type == TableType.ONLY_COVERED_BORDERS:
-    cnts, cnts_hierarchy = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     bboxes = [cv2.boundingRect(ccnt) for ccnt in cnts]
     
   return cnts, bboxes

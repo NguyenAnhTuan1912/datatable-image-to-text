@@ -11,7 +11,7 @@ from python.definitions import TableType
 
 TableBBox = namedtuple("TableBBox", ["x", "y", "w", "h"])
 
-ideal_img_size = (1200, 200)
+ideal_table_size = (1106, 598)
 
 def crop_image(img: cv2.UMat, x, y, w, h) -> cv2.UMat:
   """
@@ -19,14 +19,14 @@ def crop_image(img: cv2.UMat, x, y, w, h) -> cv2.UMat:
   cao mới của ảnh để cắt.
 
   Args:
-      img (cv2.UMat): Ảnh cần cắt
-      x (int): Điểm x của trong gốc tọa độ của ảnh mới.
-      y (int): Điểm y của trong gốc tọa độ của ảnh mới.
-      w (int): Chiều rộng tính từ điểm x của ảnh mới.
-      h (int): Chiều cao tính từ điểm y của ảnh mới.
+    img (cv2.UMat): Ảnh cần cắt
+    x (int): Điểm x của trong gốc tọa độ của ảnh mới.
+    y (int): Điểm y của trong gốc tọa độ của ảnh mới.
+    w (int): Chiều rộng tính từ điểm x của ảnh mới.
+    h (int): Chiều cao tính từ điểm y của ảnh mới.
 
   Returns:
-      cv2.UMat: Ảnh đã được cắt với các thông số được đưa vào.
+    cv2.UMat: Ảnh đã được cắt với các thông số được đưa vào.
   """
   return img[y:y + h, x:x + w]
 
@@ -41,7 +41,15 @@ def adjust_size_of_image(img: cv2.UMat, img_shape: tuple([int, int])) -> cv2.UMa
   Returns:
     cv2.UMat: Ảnh đã được điều chỉnh.
   """
-  return
+  original_w = img_shape[0]
+  ideal_w = ideal_table_size[0]
+  resize_percent = ideal_w / original_w
+  
+  new_w = int(img_shape[0] * resize_percent)
+  new_h = int(img_shape[1] * resize_percent)
+  dim = (new_w, new_h)
+  
+  return cv2.resize(img, dim, fx = 1.5, fy = 1.5, interpolation = cv2.INTER_CUBIC)
 
 def __find_ohl_table_bboxes(
   binary_image: cv2.UMat,
