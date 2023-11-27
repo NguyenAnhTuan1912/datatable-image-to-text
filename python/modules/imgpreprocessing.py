@@ -3,11 +3,13 @@ import numpy as np
 from collections import namedtuple
 import sys
 
+from modules.myres import get_message
+
 # Sử dụng sys để add utils vào mới có thể dùng module bên ngoài.
 # sys.path.append('d:/Hoctap/Computer Vision/source')
 sys.path.append('./')
 
-from python.definitions import TableType
+from definitions import TableType
 
 TableBBox = namedtuple("TableBBox", ["x", "y", "w", "h"])
 
@@ -81,8 +83,8 @@ def __find_ohl_table_bboxes(
   eroded_horizontal_img = cv2.erode(binary_image, horizontal_kernel, iterations = 5)
   processed_binary_image = cv2.dilate(eroded_horizontal_img, horizontal_kernel, iterations = 5)
   
-  cv2.imshow("Processed Binary Image (OVL)", processed_binary_image)
-  cv2.waitKey(0)
+  # cv2.imshow("Processed Binary Image (OVL)", processed_binary_image)
+  # cv2.waitKey(0)
   
   # Xóa các đường viền ngang.
   # Tìm contours của các đường này trước.
@@ -176,8 +178,8 @@ def __find_ovl_table_bboxes(
   eroded_vertical_img = cv2.erode(binary_image, vertical_kernel, iterations = 5)
   processed_binary_image = cv2.dilate(eroded_vertical_img, vertical_kernel, iterations = 5)
   
-  cv2.imshow("Processed Binary Image (OVL)", processed_binary_image)
-  cv2.waitKey(0)
+  # cv2.imshow("Processed Binary Image (OVL)", processed_binary_image)
+  # cv2.waitKey(0)
   
   # Tìm contour của bảng
   cnts, cnts_hierarchy = cv2.findContours(processed_binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -261,8 +263,8 @@ def __find_n_ocb_table_bboxes(
   """
   processed_binary_image = __n_table_image_preprocess(binary_image, img_shape)
   
-  cv2.imshow("Processed Binary Image", processed_binary_image)
-  cv2.waitKey(0)
+  # cv2.imshow("Processed Binary Image", processed_binary_image)
+  # cv2.waitKey(0)
   
   # Tìm contour của bảng
   cnts, cnts_hierarchy = cv2.findContours(processed_binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -376,11 +378,11 @@ def __n_table_image_preprocess(
   vertical_lines = cv2.dilate(eroded_vertical_img, vertical_kernel, iterations = 5)
   horizontal_lines = cv2.dilate(eroded_horizontal_img, horizontal_kernel, iterations = 5)
   
-  cv2.imshow("Vertical Lines", vertical_lines)
-  cv2.waitKey(0)
+  # cv2.imshow("Vertical Lines", vertical_lines)
+  # cv2.waitKey(0)
   
-  cv2.imshow("Horizontal Lines", horizontal_lines)
-  cv2.waitKey(0)
+  # cv2.imshow("Horizontal Lines", horizontal_lines)
+  # cv2.waitKey(0)
   
   alpha = 0.5
   beta = 1.0 - alpha
@@ -420,8 +422,8 @@ def __ohl_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   
   cv2.drawContours(copy, cnts, -1, (0, 0, 0), 3)
   
-  cv2.imshow("Remove horizontal line", copy)
-  cv2.waitKey(0)
+  # cv2.imshow("Remove horizontal line", copy)
+  # cv2.waitKey(0)
   
   # Dilate chữ
   result = cv2.dilate(copy, kernel, iterations = 1)
@@ -458,8 +460,8 @@ def __ovl_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   
   cv2.drawContours(copy, cnts, -1, (0, 0, 0), 3)
   
-  cv2.imshow("Remove horizontal line", copy)
-  cv2.waitKey(0)
+  # cv2.imshow("Remove horizontal line", copy)
+  # cv2.waitKey(0)
   
   # Dilate chữ
   result = cv2.dilate(copy, kernel, iterations = 1)
@@ -484,8 +486,8 @@ def __ocb_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   
   copy = binary_image.copy()
   
-  cv2.imshow("RESULT", result)
-  cv2.waitKey(0)
+  # cv2.imshow("RESULT", result)
+  # cv2.waitKey(0)
   
   # Xóa các đường viền dọc và ngang.
   # Tìm contours của các đường này trước.
@@ -493,8 +495,8 @@ def __ocb_table_image_preprocess(binary_image, img_shape) -> cv2.UMat:
   
   cv2.drawContours(copy, cnts, -1, (0, 0, 0), 10)
   
-  cv2.imshow("Remove horizontal line", copy)
-  cv2.waitKey(0)
+  # cv2.imshow("Remove horizontal line", copy)
+  # cv2.waitKey(0)
   
   # Dilate chữ
   result = cv2.dilate(copy, kernel, iterations = 1)

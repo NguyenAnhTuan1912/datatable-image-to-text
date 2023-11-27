@@ -5,6 +5,7 @@ import { createRouter } from '../templates/router/index.js';
 import { BlurImageHandler } from './blurImage.js';
 import { ChangeColorImageHandler } from './changeColorImage.js';
 import { FaceRegonitionImageHandler } from './faceRegonition.js';
+import { DatatableImageToExcelHandler } from './datatableImageToExcel.js';
 
 const upload = createMulterUpload("../uploads/");
 const base = {
@@ -27,6 +28,11 @@ export const ImageRouter = createRouter({
       path: base.image + FaceRegonitionImageHandler.path,
       method: "post",
       fns: [upload.fields([{ name: "image" }]), FaceRegonitionImageHandler.handler]
+    },
+    {
+      path: base.image + DatatableImageToExcelHandler.path,
+      method: "post",
+      fns: [upload.fields([{ name: "image" }]), DatatableImageToExcelHandler.handler]
     }
   ]
 });

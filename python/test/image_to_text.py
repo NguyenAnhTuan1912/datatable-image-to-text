@@ -23,7 +23,7 @@ builds_path = get_path("builds")
 outputtxt_path = get_path(out_path, "recognized.txt")
 # Biến khác
 used_lang = "eng"
-table_type = TableType.ONLY_HORIZONTAL_LINES
+table_type = TableType.NORMAL
 
 # Gán đường dẫn tới file `tesseract.exe` vừa mới cài đặt ở bước trước vào đây.
 pytesseract.pytesseract.tesseract_cmd = builds_path + "/tesseract/tesseract.exe"
@@ -32,7 +32,7 @@ pytesseract.pytesseract.tesseract_cmd = builds_path + "/tesseract/tesseract.exe"
 print("Languages that Tesseract OCR supports: ", pytesseract.get_languages())
 
 # Đọc ảnh cần trích xuất chữ
-img = cv2.imread(images_path + "/datatable02.png")
+img = cv2.imread(images_path + "/datatable03.png")
 copy_of_img = img.copy()
 
 cv2.imshow("Original", img)

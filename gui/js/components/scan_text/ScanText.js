@@ -23,22 +23,27 @@ export class ScanText extends Component {
     // Tạo input
     let imgpker = new ImagePicker(this.parent, this.utils);
     let select = this.utils.Element.toElement(`
-      <div class="mb-3">
-        <select class="form-select" name="color" aria-label="Default select example">
-        <option selected>Loại Bảng</option>
-        <option value="0">Normal</option>
-        <option value="1">Only Horizontal Lines</option>
-        <option value="2">Only Vertical Lines</option>
-        <option value="3">Only Covered Border</option>
-      </select>
+      <div class="d-flex flex-row my-3">
+        <select class="form-select me-3" name="table-type" aria-label="Default select example">
+          <option>Loại Bảng</option>
+          <option value="1" selected>Normal</option>
+          <option value="2">Only Horizontal Lines</option>
+          <option value="3">Only Vertical Lines</option>
+          <option value="4">Only Covered Border</option>
+        </select>
+
+        <select class="form-select" name="language" aria-label="Default select example">
+          <option>Ngôn ngữ</option>
+          <option value="eng" selected>English</option>
+          <option value="vie">Việt Nam</option>
+        </select>
       </div>
     `);
-    let strthRge = this.utils.Element.toElement(``);
     let submitBtn = `<button type="submit" class="btn btn-primary mt-2">Quét</button>`;
 
     let imgpkerRef = imgpker.getRef();
 
-    let imgpreview = '<div class="mb-3"><img src="https://www.elle.vn/wp-content/uploads/2017/07/25/hinh-anh-dep-1.jpg" width = 200px height = 200px></div>'
+    let imgPreview = '<div class="my-3"><img src="https://www.elle.vn/wp-content/uploads/2017/07/25/hinh-anh-dep-1.jpg" width = 200px height = 200px></div>'
     // Tạo output
     let guide = this.utils.Element.createElement("div", {
       className: "scan-image-guide",
@@ -60,7 +65,7 @@ export class ScanText extends Component {
     // Tạo form
     let form = this.utils.Element.createElement("form", {
       className: "scan-image-form",
-      children: [imgpkerRef,select, imgpreview, submitBtn],
+      children: [imgpkerRef, select, submitBtn],
       eventListeners: {
         "submit": function(e) {
           e.preventDefault();
@@ -68,16 +73,16 @@ export class ScanText extends Component {
           const imageFile = e.target["image"].files[0];
 
           ImageAPIs
-          .convertColorImageAsync(formData)
+          .extractDataFromDTInImageAsync(formData)
           .then(res => {
             // Chuyển binary thành base64.
-            const url = window.URL.createObjectURL(new Blob([res], { type: imageFile.type }));
+            const url = window.URL.createObjectURL(new Blob([res], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
 
             // Tạo một thẻ a và gán base64 vào href cho thẻ a.
             // Set thuộc tính download và tự động tải về.
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', imageFile.name);
+            link.setAttribute('download', imageFile.name.split(".")[0] + ".xlsx");
             document.body.appendChild(link);
             link.click();
           })

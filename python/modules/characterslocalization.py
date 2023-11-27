@@ -5,8 +5,8 @@ import sys
 # sys.path.append('d:/Hoctap/Computer Vision/source')
 sys.path.append('./')
 
-from python.definitions import TableType
-from python.modules.imgpreprocessing import __find_n_ocb_table_bboxes
+from definitions import TableType
+from modules.imgpreprocessing import __find_n_ocb_table_bboxes
 
 def characters_localize(binary_img, type: TableType = TableType.NORMAL) -> tuple([[cv2.UMat], [cv2.typing.Rect]]):
   """

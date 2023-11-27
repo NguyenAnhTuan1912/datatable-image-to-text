@@ -12,7 +12,8 @@ export class PyProcess {
   static ScriptPaths = {
     BlurImage: root + "/python/blur_image.py",
     ChangeColorImage: root + "/python/change_color_image.py",
-    FaceRecognition: root + "/python/face_recognition.py"
+    FaceRecognition: root + "/python/face_recognition.py",
+    DatatableImageToText: root + "/python/datatable_image_to_text.py"
   };
 
   constructor() {}
@@ -39,6 +40,7 @@ export class PyProcess {
         
         py_process.stderr.on('data', (data) => {
           data = data.toString();
+          data = JSON.parse(data);
           console.error("PyProcess Error: ", data);
           rej({ message: "There are an error!" });
         });

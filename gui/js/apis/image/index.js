@@ -56,8 +56,28 @@ async function recognizeFaceInImageAsync(data) {
   return response.arrayBuffer();
 }
 
+/**
+ * Dùng api caller này để dùng tính năng chính trong app. Tính năng trích xuất văn bản trong table thành
+ * file excel.
+ * @param {FormData} data 
+ * @returns 
+ */
+async function extractDataFromDTInImageAsync(data) {
+  const response = await fetch(
+    path + "/datatable_image_to_excel",
+    {
+      method: "post",
+      body: data
+    }
+  );
+
+  // Vì trả về là ảnh, không phải là object message, nên không convert thành json.
+  return response.arrayBuffer();
+}
+
 export const ImageAPIs = {
   convertBlurImageAsync,
   convertColorImageAsync,
-  recognizeFaceInImageAsync
+  recognizeFaceInImageAsync,
+  extractDataFromDTInImageAsync
 };
