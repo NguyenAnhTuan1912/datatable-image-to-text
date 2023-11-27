@@ -22,14 +22,26 @@ export class ScanText extends Component {
   _createContainer() {
     // Tạo input
     let imgpker = new ImagePicker(this.parent, this.utils);
+    let select = this.utils.Element.toElement(`
+      <div class="mb-3">
+        <select class="form-select" name="color" aria-label="Default select example">
+        <option selected>Loại Bảng</option>
+        <option value="0">Normal</option>
+        <option value="1">Only Horizontal Lines</option>
+        <option value="2">Only Vertical Lines</option>
+        <option value="3">Only Covered Border</option>
+      </select>
+      </div>
+    `);
     let strthRge = this.utils.Element.toElement(``);
-    let submitBtn = `<button type="submit" class="btn btn-primary mt-3">Scan</button>`;
+    let submitBtn = `<button type="submit" class="btn btn-primary mt-2">Quét</button>`;
 
     let imgpkerRef = imgpker.getRef();
 
+    let imgpreview = '<div class="mb-3"><img src="https://www.elle.vn/wp-content/uploads/2017/07/25/hinh-anh-dep-1.jpg" width = 200px height = 200px></div>'
     // Tạo output
     let guide = this.utils.Element.createElement("div", {
-      className: "blur-image-guide",
+      className: "scan-image-guide",
       children: `
         <div>
           <h3>Hướng dẫn</h3>
@@ -37,6 +49,7 @@ export class ScanText extends Component {
           <ol>
             <li>Ấn vào <strong>Choose File</strong>.</li>
             <li>Chọn một tấm ảnh muốn quét.</li>
+            <li>Chọn loại bảng</li>
             <li>Chờ Backend thực thi. Sau khi thực thi xong thì sẽ có một popup Download hiện lên, lưu ảnh vào đâu đó.</li>
             <li>Mở ảnh trong folder vừa lưu và xem kết quả.</li>
           </ol>
@@ -46,8 +59,8 @@ export class ScanText extends Component {
 
     // Tạo form
     let form = this.utils.Element.createElement("form", {
-      className: "blur-image-form",
-      children: [strthRge, imgpkerRef, submitBtn],
+      className: "scan-image-form",
+      children: [imgpkerRef,select, imgpreview, submitBtn],
       eventListeners: {
         "submit": function(e) {
           e.preventDefault();
@@ -55,7 +68,7 @@ export class ScanText extends Component {
           const imageFile = e.target["image"].files[0];
 
           ImageAPIs
-          .convertBlurImageAsync(formData)
+          .convertColorImageAsync(formData)
           .then(res => {
             // Chuyển binary thành base64.
             const url = window.URL.createObjectURL(new Blob([res], { type: imageFile.type }));
@@ -76,7 +89,7 @@ export class ScanText extends Component {
 
     // Tạo container
     let container = this.utils.Element.createElement("div", {
-      className: "blur-image-container",
+      className: "scan-image-container",
       children: [guide, form]
     });
 
